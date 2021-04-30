@@ -1,0 +1,181 @@
+<html>
+  <head>
+    <!-- Load d3.js -->
+    <script src="https://d3js.org/d3.v6.js"></script>
+    <script src="https://unpkg.com/topojson-client@3"></script>
+    <!-- <script src="http://labratrevenge.com/d3-tip/javascripts/d3.tip.v0.6.3.js"></script> -->
+
+    <link href="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8/themes/base/jquery-ui.css" rel="stylesheet" type="text/css"/>
+    <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.5/jquery.min.js"></script>
+    <script src="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8/jquery-ui.min.js"></script>
+    <link rel="stylesheet" href="http://rawgithub.com/Caged/d3-tip/master/examples/example-styles.css">
+  </head>
+  <body>
+    <h1>6.859: Loan Word Demo</h1>
+
+    <p>Search for languages using the searchbox.
+    <input type="text" value="" id="search_box" placeholder="Search for languages..."/>
+
+    <div id="chart" style="width:975px;height:610px;border:1px solid black;">
+      <!-- This is where we will put our chart. -->
+    </div>
+    <style>
+      .selected {
+        opacity: 1 !important;
+        stroke: black;
+        stroke-width: 1px;
+      }
+    </style>
+
+    <script>
+      console.log("hi");
+      //set up for chart
+      dimensions = ({
+        width: 1000,
+        height: 700,
+        margin: 50,
+      })
+      colors = ({
+        stroke_color: "black",
+        active_color: "#2c4566",
+        inactive_color: "#9daabd",
+        background_color: "#e4e9f0",
+        tooltip_color: "#21334f",
+        tooltip_background: "rgba(237, 244, 255, 0.7)"
+      })
+      tooltip = d3
+        .select('body')
+        .append('div')
+        .attr('class', 'tooltip')
+        .style('position', 'absolute')
+        .style('z-index', '10')
+        .style('visibility', 'hidden')
+        .style('padding', '10px')
+        .style('background-color', colors.tooltip_background)
+        .style('-moz-border-radius', '10px')
+        .style('-webkit-box-shadow', '2px 2px 5px rgba(0, 0, 0, 0.2)')
+        .style('-moz-box-shadow', '2px 2px 5px rgba(0, 0, 0, 0.2)')
+        .style('box-shadow', '2px 2px 5px rgba(0, 0, 0, 0.2)')
+        .style('backdrop-filter', 'blur(2px)')
+        .style('color', colors.tooltip_color) 
+        .style('font-family','sans-serif')
+        .text('a simple tooltip');
+
+      // Load data from a URL. You can also have the json file downloaded.
+      // See https://github.com/d3/d3/blob/master/API.md#fetches-d3-fetch for more options.
+      await d3.json("https://raw.githubusercontent.com/6859-sp21/final-project-loanwords-around-the-world/main/countries-110m.json", function(topojson_countries){
+        countries_objects = topojson.feature(topojson_countries, topojson_countries.objects.countries)
+        countries = topojson.feature(topojson_countries, topojson_countries.objects.countries).features
+        mesh_countries = topojson.mesh(topojson_countries, topojson_countries.objects.countries, function(a, b) { return a !== b; })
+        console.log(countries);
+        console.log("countries");
+        const svg = d3.create("svg")
+          .attr("viewBox", [0, 0, dimensions.width, dimensions.height])
+          .attr("class", "globe")
+          .on("click", reset);
+      
+        svg.append("rect")
+          .attr("width", dimensions.width)
+          .attr("height", dimensions.height)
+          .attr("fill", colors.background_color);
+        var projectionMercator = d3.geoEquirectangular()
+                                  .translate([dimensions.width / 2, dimensions.height / 2])
+                                  .rotate([0, 0])
+                                  .fitSize([dimensions.width, dimensions.height], countries_objects);
+                                   // note: use topojson objects (w/ type: FeatureCollection) to fitsize
+        
+        var geoMercator = d3.geoMercator()
+                            .center([0, 0])
+                            .fitSize([dimensions.width, dimensions.height], countries);
+        var path = d3.geoPath()
+                      .projection(projectionMercator);
+        
+        const zoom = d3.zoom()
+                        .scaleExtent([1, 10])
+                        .on("zoom", zoomed);
+
+        var g = svg.append("g");
+
+        g.selectAll("path")
+          .data(countries)
+          .enter().append("path")
+          .attr("d", path)
+          .style("fill", colors.inactive_color)
+          .style("stroke", colors.stroke_color)
+          .style("stroke-width", ".1px")
+          .attr("class", "country")
+          .on("click", clicked)
+          .on('mouseenter', function(d) { 
+            d3.select(this)
+              .transition()
+              .delay(100)
+              .style("fill", colors.active_color);
+            tooltip.html(
+                `<div><strong> ${d.properties.name}</strong></div>`)
+                 .style('visibility', 'visible');
+          })
+          .on('mouseleave', function(d) { 
+            d3.select(this)
+              .transition()
+              .delay(100)
+              .style("fill", colors.inactive_color);
+            tooltip.html(``).style('visibility', 'hidden');
+          })     
+         .on('mousemove', function () {
+                tooltip
+                  .style('top', d3.event.pageY - 10 + 'px')
+                  .style('left', d3.event.pageX + 10 + 'px');
+          });
+        
+         g.append("path")
+            .data(mesh_countries)
+            .attr("class", "mesh")
+            .attr('stroke-linejoin', 'round')
+            .style("stroke", colors.stroke_color)
+            .style("stroke-width", "1px")
+            .attr("d", path);
+
+        svg.call(zoom);
+        function clicked(d) {
+          const [[x0, y0], [x1, y1]] = path.bounds(d);
+          d3.event.stopPropagation();
+
+          svg.transition().duration(750).call(
+            zoom.transform,
+            d3.zoomIdentity
+              .translate(dimensions.width / 2, dimensions.height / 2)
+              .scale(Math.min(8, 0.9 / Math.max((x1 - x0) / dimensions.width, (y1 - y0) / dimensions.height)))
+              .translate(-(x0 + x1) / 2, -(y0 + y1) / 2),
+            d3.mouse(svg.node())
+          );
+        }
+        
+        function reset() {
+          svg.transition().duration(750).call(
+            zoom.transform,
+            d3.zoomIdentity,
+            d3.zoomTransform(svg.node()).invert([dimensions.width / 2, dimensions.height / 2])
+          );
+        }
+        
+        function zoomed() {
+          const {transform} = d3.event;
+          g.attr("transform", transform);
+          g.attr("stroke-width", 1 / transform.k);
+        }
+
+        console.log("node");
+        console.log(svg.node());
+        document.getElementById("chart").appendChild(svg.node());
+
+      
+      });
+
+  
+
+      </script>
+  </body>
+
+  <!-- This adapted from Arvind's observable from lecture. https://observablehq.com/d/4c93c3a516d35624 -->
+  <!-- Great D3 intro resource: https://observablehq.com/@d3/learn-d3?collection=@d3/learn-d3 -->
+</html>

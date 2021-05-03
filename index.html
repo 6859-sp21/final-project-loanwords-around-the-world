@@ -61,7 +61,7 @@
     </div>
 
     <script>
-      console.log("hi");
+      // console.log("hi");
       //set up for chart
       dimensions = ({
         width: 1000,
@@ -127,8 +127,9 @@
         countries_objects = topojson.feature(topojson_countries, topojson_countries.objects.countries)
         countries = topojson.feature(topojson_countries, topojson_countries.objects.countries).features
         mesh_countries = topojson.mesh(topojson_countries, topojson_countries.objects.countries, function(a, b) { return a !== b; })
-        console.log(countries);
-        console.log("countries");
+        // console.log(countries);
+        // console.log("countries");
+
         const svg = d3.create("svg")
           .attr("viewBox", [0, 0, dimensions.width, dimensions.height])
           .attr("class", "globe")
@@ -151,7 +152,7 @@
                       .projection(projectionMercator);
 
         languages.forEach(d => {d.projection = projectionMercator([d.Longitude, d.Latitude])});
-        console.log(languages)
+        // console.log(languages)
 
         const zoom = d3.zoom()
                         .scaleExtent([1, 10])
@@ -350,8 +351,8 @@
                         .sort(function(a, b) {
                                 return a.value_Borrowed - b.value_Borrowed;
                               });
-          console.log("ROLLUP")
-          console.log(rollup)
+          // console.log("ROLLUP")
+          // console.log(rollup)
 
           return rollup
       };
@@ -436,7 +437,7 @@
                           .attr('width', d => xScale_bar_SemanticField_Borrowed(d.value_Borrowed) - margin_bar.SemanticField_Borrowed.left))
                         // .attr('fill-opacity', d => d.key == selected_semantic_field ? 1 : .5)
                         .on("mouseenter", function(e, d) {
-                            console.log(d)
+                            // console.log(d)
                             if (d.key != selected_semantic_field) {
                               selected_semantic_field = d.key
                               dataJoinBarSemanticField()
@@ -555,8 +556,8 @@
                         .sort(function(a, b) {
                                 return a.value_Borrowed - b.value_Borrowed;
                               }).slice(-50);
-          console.log("ROLLUP")
-          console.log(rollup)
+          // console.log("ROLLUP")
+          // console.log(rollup)
 
           return rollup
       };

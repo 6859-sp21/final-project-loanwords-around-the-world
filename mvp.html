@@ -188,10 +188,101 @@
           const {transform} = e;
           g.attr("transform", transform);
           g.attr("stroke-width", 1 / transform.k);
+
+          g.selectAll('circle').attr('r', function (d, i)
+            {zoom_factor = transform.k
+             if (d3.select(this).attr('fill-opacity') == 1)
+                return big_r / Math.sqrt(zoom_factor);
+             return small_r / Math.sqrt(zoom_factor);})
+        }
+
+        function dataJoinMap(rawData = languages) {
+          const data = rawData//.filter(d => d.year === year);
+
+          g.selectAll("circle")
+            .data(data)
+            .join(
+              enter => enter.append("circle")
+                .attr("transform", d => `translate(${d.projection})`)
+                .attr("r", big_r / Math.sqrt(zoom_factor))
+                .attr("fill", d => "red")
+                .attr("stroke", d => "red")
+                .attr("fill-opacity", 1)
+                .attr("stroke-opacity", 0)
+                .on('mouseenter', function(e, d) {
+                  d3.select(this)
+                    .transition()
+                    .delay(100)
+                    // .style("fill", colors.active_color);
+                  tooltip.html(
+                      `<div><strong> ${d.Name}</strong></div>`)
+                       .style('visibility', 'visible');
+                  selected_point = d;
+                })
+                .on('mouseleave', function(e, d) {
+                  d3.select(this)
+                    .transition()
+                    .delay(100)
+                    // .style("fill", colors.inactive_color);
+                  tooltip.html(``).style('visibility', 'hidden');
+                })
+               .on('mousemove', function (e, d) {
+                      tooltip
+                        .style('top', e.pageY - 10 + 'px')
+                        .style('left', e.pageX + 10 + 'px');
+                }),
+
+              update => update
+                .attr("transform", d => `translate(${d.projection})`)
+                .attr("r", big_r / Math.sqrt(zoom_factor))
+                .attr("fill", d => "red")
+                .attr("stroke", d => "red")
+                .attr("stroke-opacity", 0)
+                .attr("fill-opacity", 1)
+                .on('mouseenter', function(e, d) {
+                  d3.select(this)
+                    .transition()
+                    .delay(100)
+                    // .style("fill", colors.active_color);
+                  tooltip.html(
+                      `<div><strong> ${d.Name}</strong></div>`)
+                       .style('visibility', 'visible');
+                  selected_point = d;
+                })
+                .on('mouseleave', function(e, d) {
+                  d3.select(this)
+                    .transition()
+                    .delay(100)
+                    // .style("fill", colors.inactive_color);
+                  tooltip.html(``).style('visibility', 'hidden');
+                })
+               .on('mousemove', function (e, d) {
+                      tooltip
+                        .style('top', e.pageY - 10 + 'px')
+                        .style('left', e.pageX + 10 + 'px');
+                }),
+
+              exit => {return exit
+                // .attr("fill", "gray")
+                // .attr("stroke", "gray")
+                .attr("fill-opacity", 0)
+                .attr("stroke-opacity", .5)
+                .attr("r", small_r / Math.sqrt(zoom_factor))
+                .on('mouseenter', null)
+                .on('mouseleave', null)
+               .on('mousemove', null)
+             })};
+
+          // // Raise visible points
+          // g.selectAll("circle").filter(function() {return d3.select(this).attr("fill-opacity") == 1}).raise()
+
+
+
         }
 
         console.log("node");
         console.log(svg.node());
+        dataJoinMap()
         document.getElementById("chart").appendChild(svg.node());
 
       

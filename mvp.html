@@ -65,7 +65,7 @@
                   .style('font-family','sans-serif')
                   .text('a simple tooltip');
 
-      var selected_semantic_field = "Food and drink";
+      var selected_semantic_field = "Modern world";
       var zoom_factor = 1;
       // var search_box_text = "";
       // var selected_state = "";
@@ -73,6 +73,10 @@
       var zoom_factor = 1;
       var big_r = 2;
       var small_r = 1;
+
+      function filter_semantic_field(d, semantic_field = selected_semantic_field) {
+        return selected_semantic_field == "" ? true : d.SemanticField == selected_semantic_field
+      }
 
       // Load data from a URL. You can also have the json file downloaded.
       // See https://github.com/d3/d3/blob/master/API.md#fetches-d3-fetch for more options.
@@ -290,7 +294,7 @@
         //*********************************************************************
         // Draw our histogram
         width_bar.SemanticField_Borrowed = 500,
-        height_bar.SemanticField = 600,
+        height_bar.SemanticField = 700,
         margin_bar.SemanticField_Borrowed = {top: 10, right: 10, bottom: 40, left: 200};
 
         width_bar.SemanticField_Age = 350,
@@ -391,54 +395,99 @@
           const data = aggregate_bar_SemanticField(rawData);
           // console.log(data);
 
-          g_bar_SemanticField.selectAll('rect1')
+          g_bar_SemanticField.selectAll('rect[class="Borrowed"]')
             .data(data)
             .join(
               enter => enter.append("rect")
-                  .attr("fill", d => "#2f4b7c")
-                  .attr('x', margin_bar.SemanticField_Borrowed.left)
-                  .attr('y', d => yScale_bar_SemanticField(d.key))
-                  .attr('height', yScale_bar_SemanticField.bandwidth())
-                .call(enter => enter.transition().duration(1000)
-                  .attr('width', d => {
-                    // console.log(d.value);
-                    return xScale_bar_SemanticField_Borrowed(d.value_Borrowed) - margin_bar.SemanticField_Borrowed.left})),
+                        .attr("class", "Borrowed")
+                        .attr("fill", d => d.key == selected_semantic_field ? "#2f4b7c" : "#5c6a82")
+                        .attr('x', margin_bar.SemanticField_Borrowed.left)
+                        .attr('y', d => yScale_bar_SemanticField(d.key))
+                        .attr('height', yScale_bar_SemanticField.bandwidth())
+                        .call(enter => enter.transition().duration(200)
+                          .attr('width', d => xScale_bar_SemanticField_Borrowed(d.value_Borrowed) - margin_bar.SemanticField_Borrowed.left))
+                        // .attr('fill-opacity', d => d.key == selected_semantic_field ? 1 : .5)
+                        .on("mouseenter", function(e, d) {
+                            console.log(d)
+                            if (d.key != selected_semantic_field) {
+                              selected_semantic_field = d.key
+                              dataJoinBarSemanticField()
+                              dataJoinBarSemanticFieldSpecific(parameters.filter(d => filter_semantic_field(d)))
+                            }
+                        }),
               update => update
-                  // .attr("fill", d => colorScaleSemanticField(d.key))
-                  .attr('y', d => yScale_bar_SemanticField(d.key))
-                  // .attr('width', d => xScale_bar_SemanticField(d.value) - margin_bar.SemanticField.left),
-                .call(update => update.transition().duration(200)
-                  .attr('width', d => xScale_bar_SemanticField_Borrowed(d.value_Borrowed) - margin_bar.SemanticField_Borrowed.left)),
+                          .attr('y', d => yScale_bar_SemanticField(d.key))
+                          // .attr("fill", d => colorScaleSemanticField(d.key))
+                          // .attr('width', d => xScale_bar_SemanticField(d.value) - margin_bar.SemanticField.left),
+                          .call(update => update.transition().duration(200)
+                            .attr('width', d => xScale_bar_SemanticField_Borrowed(d.value_Borrowed) - margin_bar.SemanticField_Borrowed.left))
+                            .attr("fill", d => d.key == selected_semantic_field ? "#2f4b7c" : "#5c6a82"),
+                          // .attr('fill-opacity', d => d.key == selected_semantic_field ? 1 : .5),
               exit => exit
-                .call(exit => exit.transition().duration(1000)
-                  .attr('width', d => xScale_bar_SemanticField_Borrowed(0) - margin_bar.SemanticField_Borrowed.left)
-                  .remove())
+                        .attr("fill", d => d.key == selected_semantic_field ? "#2f4b7c" : "#5c6a82")
+                        // .attr('fill-opacity', d => d.key == selected_semantic_field ? 1 : .5)
             );
 
-            g_bar_SemanticField.selectAll('rect2')
+            g_bar_SemanticField.selectAll('text[class="Borrowed"]')
               .data(data)
               .join(
-                enter => enter.append("rect")
-                    .attr('transform', `translate(${width_bar.SemanticField_Borrowed}, 0)`)
-                    .attr("fill", d => "#2f4b7c")
-                    .attr('x', margin_bar.SemanticField_Age.left)
-                    .attr('y', d => yScale_bar_SemanticField(d.key))
-                    .attr('height', yScale_bar_SemanticField.bandwidth())
-                  .call(enter => enter.transition().duration(1000)
-                    .attr('width', d => {
-                      // console.log(d.value);
-                      return xScale_bar_SemanticField_Age(Age_to_Year_Estimate(d.value_Age)) - margin_bar.SemanticField_Age.left})),
+                enter => enter.append("text")
+                          .attr("class", "Borrowed")
+                          .attr('text-anchor', 'end')
+                          .attr('fill', 'white')
+                          .attr('font-size', '10px')
+                          .attr('font-weight', 'bold')
+                          .attr('x', d => xScale_bar_SemanticField_Borrowed(d.value_Borrowed) - 5)
+                          .attr('y', d => yScale_bar_SemanticField(d.key) + 3*yScale_bar_SemanticField.bandwidth()/4)
+                          .text(d => d.value_Borrowed.toFixed(1)),
                 update => update
-                    // .attr("fill", d => colorScaleSemanticField(d.key))
-                    .attr('y', d => yScale_bar_SemanticField(d.key))
-                    // .attr('width', d => xScale_bar_SemanticField(d.value) - margin_bar.SemanticField.left),
-                  .call(update => update.transition().duration(200)
-                    .attr('width', d => xScale_bar_SemanticField_Age(Age_to_Year_Estimate(d.value_Age)) - margin_bar.SemanticField_Age.left)),
-                exit => exit
-                  .call(exit => exit.transition().duration(1000)
-                    .attr('width', d => xScale_bar_SemanticField_Age(0) - margin_bar.SemanticField_Age.left)
-                    .remove())
+                            .attr('x', d => xScale_bar_SemanticField_Borrowed(d.value_Borrowed) - 5)
+                            .attr('y', d => yScale_bar_SemanticField(d.key) + 3*yScale_bar_SemanticField.bandwidth()/4)
+                            .text(d => d.value_Borrowed.toFixed(1)),
+                            // .attr('y', d => yScale_bar_SemanticField(d.key))
+                            // // .attr("fill", d => colorScaleSemanticField(d.key))
+                            // // .attr('width', d => xScale_bar_SemanticField(d.value) - margin_bar.SemanticField.left),
+                            // .call(update => update.transition().duration(200)
+                            //   .attr('width', d => xScale_bar_SemanticField_Borrowed(d.value_Borrowed) - margin_bar.SemanticField_Borrowed.left))
+                            //   .attr("fill", d => d.key == selected_semantic_field ? "#2f4b7c" : "#5c6a82"),
+                            // // .attr('fill-opacity', d => d.key == selected_semantic_field ? 1 : .5),
+                exit => exit.remove()
+                          // .attr("fill", d => d.key == selected_semantic_field ? "#2f4b7c" : "#5c6a82")
+                          // // .attr('fill-opacity', d => d.key == selected_semantic_field ? 1 : .5)
               );
+
+            // g_bar_SemanticField.selectAll('rect2')
+            //   .data(data)
+            //   .join(
+            //     enter => enter.append("rect")
+            //               .attr('transform', `translate(${width_bar.SemanticField_Borrowed}, 0)`)
+            //               .attr("fill", d => "#2f4b7c")
+            //               .attr('x', margin_bar.SemanticField_Age.left)
+            //               .attr('y', d => yScale_bar_SemanticField(d.key))
+            //               .attr('height', yScale_bar_SemanticField.bandwidth())
+            //               .call(enter => enter.transition().duration(1000)
+            //                 .attr('width', d => {
+            //                   // console.log(d.value);
+            //                   return xScale_bar_SemanticField_Age(Age_to_Year_Estimate(d.value_Age)) - margin_bar.SemanticField_Age.left}))
+            //               .attr('fill-opacity', 1)
+            //               .on("mouseover", function(e, d) {
+            //                   selected_semantic_field = d.key
+            //                   dataJoinBarSemanticField(parameters.filter(d => filter_semantic_field(d)))
+            //                   dataJoinBarSemanticFieldSpecific(parameters.filter(d => filter_semantic_field(d)))
+            //             	}),
+            //     update => update
+            //                 // .attr("fill", d => colorScaleSemanticField(d.key))
+            //                 .attr('y', d => yScale_bar_SemanticField(d.key))
+            //                 // .attr('width', d => xScale_bar_SemanticField(d.value) - margin_bar.SemanticField.left),
+            //               .call(update => update.transition().duration(200)
+            //                 .attr('width', d => xScale_bar_SemanticField_Age(Age_to_Year_Estimate(d.value_Age)) - margin_bar.SemanticField_Age.left))
+            //                 .attr('fill-opacity', 1),
+            //     exit => exit
+            //               .call(exit => exit.transition().duration(1000)
+            //                 .attr('fill-opacity', .7))
+            //                 // .attr('width', d => xScale_bar_SemanticField_Age(0) - margin_bar.SemanticField_Age.left)
+            //
+            //   );
 
         }
 
@@ -448,7 +497,7 @@
         //*********************************************************************
         // Draw our histogram
         width_bar.SemanticFieldSpecific_Borrowed = 500,
-        height_bar.SemanticFieldSpecific = 600,
+        height_bar.SemanticFieldSpecific = 700,
         margin_bar.SemanticFieldSpecific_Borrowed = {top: 10, right: 10, bottom: 40, left: 200};
 
         width_bar.SemanticFieldSpecific_Age = 320,
@@ -498,11 +547,6 @@
           .range([margin_bar.SemanticFieldSpecific_Age.left, width_bar.SemanticFieldSpecific_Age - margin_bar.SemanticFieldSpecific_Age.right])
           .nice();
 
-        const yScale_bar_SemanticFieldSpecific = d3.scaleBand()
-          .domain(rawAggregateSemanticFieldSpecific.map(d => d.key))
-          .range([height_bar.SemanticFieldSpecific - margin_bar.SemanticFieldSpecific_Borrowed.bottom, margin_bar.SemanticFieldSpecific_Borrowed.top])
-          .padding(0.1);
-
         svg_bar_SemanticFieldSpecific.append('g')
           .classed('x-axis', true)
           .attr('transform', `translate(0, ${height_bar.SemanticFieldSpecific - margin_bar.SemanticFieldSpecific_Borrowed.bottom})`)
@@ -516,11 +560,6 @@
             .text('Borrowed Score');
 
         svg_bar_SemanticFieldSpecific.append('g')
-          .classed('y-axis', true)
-          .attr('transform', `translate(${margin_bar.SemanticFieldSpecific_Borrowed.left}, 0)`)
-          .call(d3.axisLeft(yScale_bar_SemanticFieldSpecific).tickFormat((d,i) => d));
-
-        svg_bar_SemanticFieldSpecific.append('g')
           .classed('x-axis', true)
           .attr('transform', `translate(${width_bar.SemanticFieldSpecific_Borrowed}, ${height_bar.SemanticFieldSpecific - margin_bar.SemanticFieldSpecific_Borrowed.bottom})`)
           .call(d3.axisBottom(xScale_bar_SemanticFieldSpecific_Age).ticks(3))
@@ -532,7 +571,17 @@
             .attr('font-weight', 'bold')
             .text('Age Score');
 
-        svg_bar_SemanticFieldSpecific.append('g')
+        const yScale_bar_SemanticFieldSpecific = d3.scaleBand()
+          .domain(rawAggregateSemanticFieldSpecific.map(d => d.key))
+          .range([height_bar.SemanticFieldSpecific - margin_bar.SemanticFieldSpecific_Borrowed.bottom, margin_bar.SemanticFieldSpecific_Borrowed.top])
+          .padding(0.1);
+
+        const yAxis_SemanticFieldSpecific_Borrowed = svg_bar_SemanticFieldSpecific.append('g')
+          .classed('y-axis', true)
+          .attr('transform', `translate(${margin_bar.SemanticFieldSpecific_Borrowed.left}, 0)`)
+          .call(d3.axisLeft(yScale_bar_SemanticFieldSpecific).tickFormat((d,i) => d));
+
+        const yAxis_SemanticFieldSpecific_Age = svg_bar_SemanticFieldSpecific.append('g')
           .classed('y-axis', true)
           .attr('transform', `translate(${width_bar.SemanticFieldSpecific_Borrowed + margin_bar.SemanticFieldSpecific_Age.left}, 0)`)
           .call(d3.axisLeft(yScale_bar_SemanticFieldSpecific).tickFormat((d,i) => ""));
@@ -546,51 +595,96 @@
           const data = aggregate_bar_SemanticFieldSpecific(rawData);
           // console.log(data);
 
-          g_bar_SemanticFieldSpecific.selectAll('rect1')
+          yScale_bar_SemanticFieldSpecific.domain(data.map(d => d.key))
+          yAxis_SemanticFieldSpecific_Borrowed.transition().duration(200).call(d3.axisLeft(yScale_bar_SemanticFieldSpecific).tickFormat((d,i) => d));
+          yAxis_SemanticFieldSpecific_Age.transition().duration(200).call(d3.axisLeft(yScale_bar_SemanticFieldSpecific).tickFormat((d,i) => ""));
+
+          g_bar_SemanticFieldSpecific.selectAll('rect[class="Borrowed"]')
             .data(data)
             .join(
               enter => enter.append("rect")
+                  .attr("class", "Borrowed")
                   .attr("fill", d => "#2f4b7c")
                   .attr('x', margin_bar.SemanticFieldSpecific_Borrowed.left)
                   .attr('y', d => yScale_bar_SemanticFieldSpecific(d.key))
                   .attr('height', yScale_bar_SemanticFieldSpecific.bandwidth())
-                .call(enter => enter.transition().duration(1000)
-                  .attr('width', d => {
-                    // console.log(d.value);
-                    return xScale_bar_SemanticFieldSpecific_Borrowed(d.value_Borrowed) - margin_bar.SemanticFieldSpecific_Borrowed.left})),
+                .call(enter => enter.transition().duration(200)
+                  .attr('width', d => xScale_bar_SemanticFieldSpecific_Borrowed(d.value_Borrowed) - margin_bar.SemanticFieldSpecific_Borrowed.left)),
               update => update
                   // .attr("fill", d => colorScaleSemanticFieldSpecific(d.key))
+                  .attr('x', margin_bar.SemanticFieldSpecific_Borrowed.left)
                   .attr('y', d => yScale_bar_SemanticFieldSpecific(d.key))
-                .call(update => update.transition().duration(200)
-                  .attr('width', d => xScale_bar_SemanticFieldSpecific_Borrowed(d.value_Borrowed) - margin_bar.SemanticFieldSpecific_Borrowed.left)),
+                  .attr('height', yScale_bar_SemanticFieldSpecific.bandwidth())
+                  .call(update => update.transition().duration(200)
+                    .attr('width', d => xScale_bar_SemanticFieldSpecific_Borrowed(d.value_Borrowed) - margin_bar.SemanticFieldSpecific_Borrowed.left)),
               exit => exit
-                .call(exit => exit.transition().duration(1000)
-                  .attr('width', d => xScale_bar_SemanticFieldSpecific_Borrowed(0) - margin_bar.SemanticFieldSpecific_Borrowed.left)
-                  .remove())
+                        .attr('width', d => xScale_bar_SemanticFieldSpecific_Borrowed(0) - margin_bar.SemanticFieldSpecific_Borrowed.left)
+                        .remove()
             );
 
-            g_bar_SemanticFieldSpecific.selectAll('rect2')
+            g_bar_SemanticFieldSpecific.selectAll('text[class="Borrowed"]')
+              .data(data)
+              .join(
+                enter => enter.append("text")
+                          .attr("class", "Borrowed")
+                          .attr('opacity',d => d.value_Borrowed > .08 ? 1 : 0)
+                          .attr('text-anchor', 'end')
+                          .attr('fill', 'white')
+                          .attr('font-size', '10px')
+                          .attr('font-weight', 'bold')
+                          .attr('x', d => xScale_bar_SemanticFieldSpecific_Borrowed(d.value_Borrowed) - 5)
+                          .attr('y', d => yScale_bar_SemanticFieldSpecific(d.key) + 3*yScale_bar_SemanticFieldSpecific.bandwidth()/4)
+                          .text(d => d.value_Borrowed.toFixed(2)),
+                update => update
+                            .attr('opacity', d => d.value_Borrowed > .08 ? 1 : 0)
+                            .attr('x', d => xScale_bar_SemanticFieldSpecific_Borrowed(d.value_Borrowed) - 5)
+                            .attr('y', d => yScale_bar_SemanticFieldSpecific(d.key) + 3*yScale_bar_SemanticFieldSpecific.bandwidth()/4)
+                            .text(d => d.value_Borrowed.toFixed(2)),
+                exit => exit.remove()
+              );
+
+            g_bar_SemanticFieldSpecific.selectAll('rect[class="Age"]')
               .data(data)
               .join(
                 enter => enter.append("rect")
-                    .attr('transform', `translate(${width_bar.SemanticFieldSpecific_Borrowed}, 0)`)
-                    .attr("fill", d => "#2f4b7c")
-                    .attr('x', margin_bar.SemanticFieldSpecific_Age.left)
-                    .attr('y', d => yScale_bar_SemanticFieldSpecific(d.key))
-                    .attr('height', yScale_bar_SemanticFieldSpecific.bandwidth())
-                  .call(enter => enter.transition().duration(1000)
-                    .attr('width', d => {
-                      // console.log(d.value);
-                      return xScale_bar_SemanticFieldSpecific_Age(Age_to_Year_Estimate(d.value_Age)) - margin_bar.SemanticFieldSpecific_Age.left})),
+                          .attr("class", "Age")
+                          .attr('transform', `translate(${width_bar.SemanticFieldSpecific_Borrowed}, 0)`)
+                          .attr("fill", d => "#2f4b7c")
+                          .attr('x', margin_bar.SemanticFieldSpecific_Age.left)
+                          .attr('y', d => yScale_bar_SemanticFieldSpecific(d.key))
+                          .attr('height', yScale_bar_SemanticFieldSpecific.bandwidth())
+                          .call(enter => enter.transition().duration(200)
+                          .attr('width', d => xScale_bar_SemanticFieldSpecific_Age(Age_to_Year_Estimate(d.value_Age)) - margin_bar.SemanticFieldSpecific_Age.left)),
                 update => update
-                    .attr('y', d => yScale_bar_SemanticFieldSpecific(d.key))
-                  .call(update => update.transition().duration(200)
-                    .attr('width', d => xScale_bar_SemanticFieldSpecific_Age(Age_to_Year_Estimate(d.value_Age)) - margin_bar.SemanticFieldSpecific_Age.left)),
+                            .attr('x', margin_bar.SemanticFieldSpecific_Age.left)
+                            .attr('y', d => yScale_bar_SemanticFieldSpecific(d.key))
+                            .attr('height', yScale_bar_SemanticFieldSpecific.bandwidth())
+                            .call(enter => enter.transition().duration(200)
+                            .attr('width', d => xScale_bar_SemanticFieldSpecific_Age(Age_to_Year_Estimate(d.value_Age)) - margin_bar.SemanticFieldSpecific_Age.left)),
                 exit => exit
-                  .call(exit => exit.transition().duration(1000)
-                    .attr('width', d => xScale_bar_SemanticFieldSpecific_Age(0) - margin_bar.SemanticFieldSpecific_Age.left)
-                    .remove())
+                          .attr('width', d => xScale_bar_SemanticFieldSpecific_Age(0) - margin_bar.SemanticFieldSpecific_Age.left)
+                          .remove()
               );
+
+              g_bar_SemanticFieldSpecific.selectAll('text[class="Age"]')
+                .data(data)
+                .join(
+                  enter => enter.append("text")
+                            .attr('transform', `translate(${width_bar.SemanticFieldSpecific_Borrowed}, 0)`)
+                            .attr("class", "Age")
+                            .attr('text-anchor', 'end')
+                            .attr('fill', 'white')
+                            .attr('font-size', '10px')
+                            .attr('font-weight', 'bold')
+                            .attr('x', d => xScale_bar_SemanticFieldSpecific_Age(Age_to_Year_Estimate(d.value_Age)) - 5)
+                            .attr('y', d => yScale_bar_SemanticFieldSpecific(d.key) + 3*yScale_bar_SemanticFieldSpecific.bandwidth()/4)
+                            .text(d => Age_to_Year_Estimate(d.value_Age)),
+                  update => update
+                              .attr('x', d => xScale_bar_SemanticFieldSpecific_Age(Age_to_Year_Estimate(d.value_Age)) - 5)
+                              .attr('y', d => yScale_bar_SemanticFieldSpecific(d.key) + 3*yScale_bar_SemanticFieldSpecific.bandwidth()/4)
+                              .text(d => Age_to_Year_Estimate(d.value_Age)),
+                  exit => exit.remove()
+                );
 
         }
 
@@ -718,6 +812,7 @@
 
         dataJoinMap()
         dataJoinBarSemanticField()
+        dataJoinBarSemanticField(parameters.filter(d => filter_semantic_field(d)))
         dataJoinBarSemanticFieldSpecific()
 
 

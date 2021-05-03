@@ -16,7 +16,7 @@
     <p>Search for languages using the searchbox.
     <input type="text" value="" id="search_box" placeholder="Search for languages..."/>
 
-    <div id="chart" style="width:975px;height:610px;border:1px solid black;">
+    <div id="chart" style="width:1000px;height:700px;border:1px solid black;">
       <!-- This is where we will put our chart. -->
     </div>
     <style>
@@ -43,27 +43,50 @@
         tooltip_color: "#21334f",
         tooltip_background: "rgba(237, 244, 255, 0.7)"
       })
-      tooltip = d3
-        .select('body')
-        .append('div')
-        .attr('class', 'tooltip')
-        .style('position', 'absolute')
-        .style('z-index', '10')
-        .style('visibility', 'hidden')
-        .style('padding', '10px')
-        .style('background-color', colors.tooltip_background)
-        .style('-moz-border-radius', '10px')
-        .style('-webkit-box-shadow', '2px 2px 5px rgba(0, 0, 0, 0.2)')
-        .style('-moz-box-shadow', '2px 2px 5px rgba(0, 0, 0, 0.2)')
-        .style('box-shadow', '2px 2px 5px rgba(0, 0, 0, 0.2)')
-        .style('backdrop-filter', 'blur(2px)')
-        .style('color', colors.tooltip_color) 
-        .style('font-family','sans-serif')
-        .text('a simple tooltip');
+      tooltip = d3.select('body')
+                  .append('div')
+                  .attr('class', 'tooltip')
+                  .style('position', 'absolute')
+                  .style('z-index', '10')
+                  .style('visibility', 'hidden')
+                  .style('padding', '10px')
+                  .style('background-color', colors.tooltip_background)
+                  .style('-moz-border-radius', '10px')
+                  .style('-webkit-box-shadow', '2px 2px 5px rgba(0, 0, 0, 0.2)')
+                  .style('-moz-box-shadow', '2px 2px 5px rgba(0, 0, 0, 0.2)')
+                  .style('box-shadow', '2px 2px 5px rgba(0, 0, 0, 0.2)')
+                  .style('backdrop-filter', 'blur(2px)')
+                  .style('color', colors.tooltip_color)
+                  .style('font-family','sans-serif')
+                  .text('a simple tooltip');
+
+      var selected_semantic_field = "Food and drink";
+      var zoom_factor = 1;
+      // var search_box_text = "";
+      // var selected_state = "";
+      var selected_point = null;
+      var zoom_factor = 1;
+      var big_r = 2;
+      var small_r = 1;
 
       // Load data from a URL. You can also have the json file downloaded.
       // See https://github.com/d3/d3/blob/master/API.md#fetches-d3-fetch for more options.
-      await d3.json("https://raw.githubusercontent.com/6859-sp21/final-project-loanwords-around-the-world/main/countries-110m.json", function(topojson_countries){
+
+
+      d3.csv("https://raw.githubusercontent.com/6859-sp21/final-project-loanwords-around-the-world/main/parameters.csv").then((parameters) => {
+      d3.csv("https://raw.githubusercontent.com/6859-sp21/final-project-loanwords-around-the-world/main/languages.csv").then((languages) => {
+      d3.csv("https://raw.githubusercontent.com/6859-sp21/final-project-loanwords-around-the-world/main/parameters.csv").then((other) => {
+
+        var topojson_countries; // = await d3.json("https://static.observableusercontent.com/files/75faaaca1f1a4f415145b9db520349a3a0b93a53c1071346a30e6824586a7c251f45367d9262ed148b7a2b5c2694aa7703f3ac88051abc65066fd0074fdf9c9e?response-content-disposition=attachment%3Bfilename*%3DUTF-8%27%27states-albers-10m.json")
+        $.ajax({
+          dataType: "json",
+          url: "https://raw.githubusercontent.com/6859-sp21/final-project-loanwords-around-the-world/main/countries-110m.json",
+          // data: data,
+          success: (data, success) => {if (success) topojson_countries = data;
+                                       else console.log("FAILED TO LOAD MAP")},
+          async: false
+        });
+
         countries_objects = topojson.feature(topojson_countries, topojson_countries.objects.countries)
         countries = topojson.feature(topojson_countries, topojson_countries.objects.countries).features
         mesh_countries = topojson.mesh(topojson_countries, topojson_countries.objects.countries, function(a, b) { return a !== b; })
@@ -73,7 +96,7 @@
           .attr("viewBox", [0, 0, dimensions.width, dimensions.height])
           .attr("class", "globe")
           .on("click", reset);
-      
+
         svg.append("rect")
           .attr("width", dimensions.width)
           .attr("height", dimensions.height)
@@ -83,13 +106,16 @@
                                   .rotate([0, 0])
                                   .fitSize([dimensions.width, dimensions.height], countries_objects);
                                    // note: use topojson objects (w/ type: FeatureCollection) to fitsize
-        
+
         var geoMercator = d3.geoMercator()
                             .center([0, 0])
                             .fitSize([dimensions.width, dimensions.height], countries);
         var path = d3.geoPath()
                       .projection(projectionMercator);
-        
+
+        languages.forEach(d => {d.projection = projectionMercator([d.Longitude, d.Latitude])});
+        console.log(languages)
+
         const zoom = d3.zoom()
                         .scaleExtent([1, 10])
                         .on("zoom", zoomed);
@@ -105,7 +131,7 @@
           .style("stroke-width", ".1px")
           .attr("class", "country")
           .on("click", clicked)
-          .on('mouseenter', function(d) { 
+          .on('mouseenter', function(e, d) {
             d3.select(this)
               .transition()
               .delay(100)
@@ -114,19 +140,19 @@
                 `<div><strong> ${d.properties.name}</strong></div>`)
                  .style('visibility', 'visible');
           })
-          .on('mouseleave', function(d) { 
+          .on('mouseleave', function(e, d) {
             d3.select(this)
               .transition()
               .delay(100)
               .style("fill", colors.inactive_color);
             tooltip.html(``).style('visibility', 'hidden');
-          })     
-         .on('mousemove', function () {
+          })
+         .on('mousemove', function (e, d) {
                 tooltip
-                  .style('top', d3.event.pageY - 10 + 'px')
-                  .style('left', d3.event.pageX + 10 + 'px');
+                  .style('top', e.pageY - 10 + 'px')
+                  .style('left', e.pageX + 10 + 'px');
           });
-        
+
          g.append("path")
             .data(mesh_countries)
             .attr("class", "mesh")
@@ -136,9 +162,9 @@
             .attr("d", path);
 
         svg.call(zoom);
-        function clicked(d) {
+        function clicked(e, d) {
           const [[x0, y0], [x1, y1]] = path.bounds(d);
-          d3.event.stopPropagation();
+          e.stopPropagation();
 
           svg.transition().duration(750).call(
             zoom.transform,
@@ -149,7 +175,7 @@
             d3.mouse(svg.node())
           );
         }
-        
+
         function reset() {
           svg.transition().duration(750).call(
             zoom.transform,
@@ -157,9 +183,9 @@
             d3.zoomTransform(svg.node()).invert([dimensions.width / 2, dimensions.height / 2])
           );
         }
-        
-        function zoomed() {
-          const {transform} = d3.event;
+
+        function zoomed(e) {
+          const {transform} = e;
           g.attr("transform", transform);
           g.attr("stroke-width", 1 / transform.k);
         }

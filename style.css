@@ -1,0 +1,25 @@
+.grid-container {
+  display: grid;
+  grid-template-columns: 23% 23% 23% 23% 8%;
+  grid-template-rows: 1fr 10% fit-content(10%) fit-content(10%) fit-content(10%);
+  gap: 0px 0px;
+  grid-template-areas:
+    "IntroText SemanticField SemanticFieldSubWords SemanticFieldSubWords SemanticFieldSubWords"
+    "SearchboxDesc SearchboxDesc SearchboxDesc SearchboxDesc ."
+    "Map Map Map Map ."
+    "Map Map Map Map ."
+    "Map Map Map Map .";
+}
+
+.Map {
+  grid-area: Map;
+  border: 1px solid black;
+}
+
+.SearchboxDesc { grid-area: SearchboxDesc; }
+
+.IntroText { grid-area: IntroText; }
+
+.SemanticField { grid-area: SemanticField; }
+
+.SemanticFieldSubWords { grid-area: SemanticFieldSubWords; }

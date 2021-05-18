@@ -8,19 +8,41 @@
     <link href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.8/themes/base/jquery-ui.css" rel="stylesheet" type="text/css"/>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.5/jquery.min.js"></script>
     <script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.8/jquery-ui.min.js"></script>
+
     <link rel="stylesheet" href="https://rawgithub.com/Caged/d3-tip/master/examples/example-styles.css">
     <link rel="stylesheet" href="style.css">
+    <style>
+      #custom-handle {
+        width: 50;
+        height: 1.6em;
+        top: 50%;
+        margin-top: -.8em;
+        text-align: center;
+        line-height: 1.6em;
+        
+      }
+    </style>
+    <style>
+      .myDiv {
+        background-color: black;
+        height: 20px;
+        width: 200px;
+      }
+    </style>
   </head>
   <body>
     <h1>6.859: Loan Word Demo</h1>
 
+
     <div class="grid-container">
+      
       <div class="Map"></div>
 
       <div class="SearchboxDesc">
         <p>Search for languages using the searchbox.
         <input type="text" value="" id="search_box" placeholder="Search for languages..."/>
       </div>
+
 
       <div class="IntroText">
         <strong>Placeholder text -- still need to figure out format/what to write here.</strong> <br><br>
@@ -54,14 +76,35 @@
 
       </div>
 
+
       <div class="SemanticField"></div>
 
       <div class="SemanticFieldSubWords"></div>
 
+
+    </div>
+    <div class = 'myDiv' id="slider">
+        <div id="custom-handle" class="ui-slider-handle"></div>
     </div>
 
+
     <script>
-      // console.log("hi");
+      var selected_slidebar = 0;
+      $( function() {
+        var handle = $( "#custom-handle" );
+        $( "#slider" ).slider({
+          create: function() {
+            handle.text( $( this ).slider( "value" )/100 );
+          },
+          slide: function( event, ui ) {
+            selected_slidebar = ui.value/100
+            console.log("SLIDEBAR")
+            console.log(ui.value)
+            console.log(selected_slidebar)
+            handle.text( ui.value/100 );
+          }
+        });
+      } );      // console.log("hi");
       //set up for chart
       dimensions = ({
         width: 1000,
@@ -1094,11 +1137,13 @@
         $('.SemanticField').append(svg_bar_SemanticField.node());
         $('.SemanticFieldSubWords').append(svg_bar_SemanticFieldSpecific.node());
 
+
       })})});
 
 
 
       </script>
+      
   </body>
 
   <!-- This adapted from Arvind's observable from lecture. https://observablehq.com/d/4c93c3a516d35624 -->

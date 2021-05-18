@@ -95,7 +95,7 @@
 
       var selected_semantic_field = "Modern world";
       var zoom_factor = 1;
-      // var search_box_text = "";
+      var search_box_text = "";
       // var selected_state = "";
       var selected_point = null;
       var zoom_factor = 1;
@@ -106,6 +106,10 @@
         return selected_semantic_field == "" ? true : d.SemanticField == selected_semantic_field
       }
 
+
+      function filter_searchbox(d, text = search_box_text) {
+          return d.Name.toLowerCase().includes(text.toLowerCase())
+      }
       // Load data from a URL. You can also have the json file downloaded.
       // See https://github.com/d3/d3/blob/master/API.md#fetches-d3-fetch for more options.
 
@@ -844,6 +848,66 @@
         dataJoinBarSemanticField(parameters.filter(d => filter_semantic_field(d)))
         dataJoinBarSemanticFieldSpecific()
 
+        $('#search_box').autocomplete({
+        // source: college_mobility.map(d => d.name)
+        source: function (request, response) {
+                    response(languages
+                      .filter(d => filter_searchbox(d))
+                      .map(d => d.Name))
+                }
+        });
+
+      $('#search_box').keyup(function(e){
+        // $('#slider').slider({value: this.value});
+
+        // console.log(this.value);
+
+        search_box_text = this.value
+
+        if (e.which == '13') {
+          // e.preventDefault();
+
+          let results = languages.filter(d => filter_searchbox(d))
+
+          console.log("ENTERPRESSED")
+
+          if (results.length == 1) {
+            console.log("RESULT")
+            console.log(results)
+            selected_point = results[0]
+
+            // $("#school-label").text(selected_point.name)
+            // $("#tier-label").text(selected_point.tier_name)
+            // $("#state-label").text(selected_point.state_name)
+
+            dataJoinMap(results)
+
+          }
+
+
+        } else {
+
+          dataJoinMap(languages.filter(d => filter_searchbox(d)));
+
+          let results = languages.filter(d => filter_searchbox(d))
+
+          console.log("ENTERPRESSED")
+
+          if (results.length == 1) {
+            console.log("RESULT")
+            console.log(results)
+            selected_point = results[0]
+
+            // $("#school-label").text(selected_point.name)
+            // $("#tier-label").text(selected_point.tier_name)
+            // $("#state-label").text(selected_point.state_name)
+
+            dataJoinMap(results)
+
+          }
+        }
+
+      });
 
         // console.log("node");
         // console.log(svg.node());

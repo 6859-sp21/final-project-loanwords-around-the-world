@@ -10,8 +10,51 @@
     <script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.8/jquery-ui.min.js"></script>
     <link rel="stylesheet" href="https://rawgithub.com/Caged/d3-tip/master/examples/example-styles.css">
     <link rel="stylesheet" href="style.css">
+    <style>
+    body {
+      font-family:"avenir next", Arial, sans-serif;
+      font-size: 12px;
+      color: #696969;
+    }
+
+    .ticks {
+      font-size: 10px;
+    }
+
+    .track,
+    .track-inset,
+    .track-overlay {
+      stroke-linecap: round;
+    }
+
+    .track {
+      stroke: #000;
+      stroke-opacity: 0.3;
+      stroke-width: 10px;
+    }
+
+    .track-inset {
+      stroke: #dcdcdc;
+      stroke-width: 8px;
+    }
+
+    .track-overlay {
+      pointer-events: stroke;
+      stroke-width: 50px;
+      stroke: transparent;
+      cursor: crosshair;
+    }
+
+    .handle {
+      fill: #fff;
+      stroke: #000;
+      stroke-opacity: 0.5;
+      stroke-width: 1.25px;
+    }
+  </style>
   </head>
   <body>
+    
     <h1>6.859: Loan Word Demo</h1>
 
     <div class="grid-container">
@@ -59,10 +102,92 @@
       <div class="SemanticFieldSubWords"></div>
 
     </div>
+    <div id="slider"></div>
+    <div id="vis"></div>
 
     <script>
-      console.log("hi");
+      var formatDateIntoYear = d3.timeFormat("%Y");
+      var formatDate = d3.timeFormat("%b %Y");
+      var parseDate = d3.timeParse("%m/%d/%y");
+
+      var startScore = new Date("2004-11-01"),
+          endScore = new Date("2017-04-01");
+
+
+      var margin = {top:0, right:50, bottom:0, left:50},
+        width = 960 - margin.left - margin.right,
+        height = 200 - margin.top - margin.bottom;
+
+      var svgSlider = d3.select("#slider")
+        .append("svg")
+        .attr("width", width + margin.left + margin.right)
+        .attr("height", height);
+    
+      var x = d3.scaleLinear()
+          .domain([startScore, endScore])
+          .range([0, width])
+          .clamp(true);
+
+      var slider = svgSlider.append("g")
+          .attr("class", "slider")
+          .attr("transform", "translate(" + margin.left + "," + height / 2 + ")");
+
+      slider.append("line")
+
+          .attr("class", "track")
+          .attr("x1", x.range()[0])
+          .attr("x2", x.range()[1])
+        .select(function() { return this.parentNode.appendChild(this.cloneNode(true)); })
+          .attr("class", "track-inset")
+        .select(function() { return this.parentNode.appendChild(this.cloneNode(true)); })
+          .attr("class", "track-overlay")
+          .call(d3.drag()
+              .on("start.interrupt", function() { slider.interrupt(); })
+              .on("start drag", function() {
+                console.log("EVENT") 
+                console.log(d3.event)
+                console.log(x);
+                update(x.invert(x)); }));
+
+      slider.insert("g", ".track-overlay")
+          .attr("class", "ticks")
+          .attr("transform", "translate(0," + 18 + ")")
+        .selectAll("text")
+          .data(x.ticks(10))
+          .enter()
+          .append("text")
+          .attr("x", x)
+          .attr("y", 10)
+          .attr("text-anchor", "middle")
+          .text(function(d) { return formatDateIntoYear(d); });
+      console.log("SLIDER");
+      console.log(slider.x);
+
+      var handle = slider.insert("circle", ".track-overlay")
+          .attr("class", "handle")
+          .attr("r", 9);
+
+      var label = slider.append("text")  
+          .attr("class", "label")
+          .attr("text-anchor", "middle")
+          .text("Age Score")
+          .attr("transform", "translate(0," + (-25) + ")")
+      function update(h) {
+        // update position and text of label according to slider scale
+        handle.attr("cx", x(h));
+        label
+          .attr("x", x(h))
+          .text(x);
+
+        // filter data set and redraw plot
+        var newData = dataset.filter(function(d) {
+          return d.date < h;
+        })
+        drawPlot(newData);
+      }
+
       //set up for chart
+      console.log("hi");
       dimensions = ({
         width: 1000,
         height: 700,
@@ -232,7 +357,8 @@
                 return big_r / Math.sqrt(zoom_factor);
              return small_r / Math.sqrt(zoom_factor);})
         }
-
+        console.log("LANGUAGES");
+        console.log(languages);
         function dataJoinMap(rawData = languages) {
           const data = rawData//.filter(d => d.year === year);
 
@@ -639,6 +765,7 @@
                 .call(enter => enter.transition().duration(200)
                   .attr('width', d => xScale_bar_SemanticFieldSpecific_Borrowed(d.value_Borrowed) - margin_bar.SemanticFieldSpecific_Borrowed.left)),
               update => update
+                
                   // .attr("fill", d => colorScaleSemanticFieldSpecific(d.key))
                   .attr('x', margin_bar.SemanticFieldSpecific_Borrowed.left)
                   .attr('y', d => yScale_bar_SemanticFieldSpecific(d.key))

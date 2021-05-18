@@ -98,9 +98,12 @@
       var search_box_text = "";
       // var selected_state = "";
       var selected_point = null;
-      var zoom_factor = 1;
+      var selected_is_source = null;
+
       var big_r = 2;
       var small_r = 1;
+      const source_color = '#1E555C'
+      const target_color = '#EDB183'
 
       function filter_semantic_field(d, semantic_field = selected_semantic_field) {
         return selected_semantic_field == "" ? true : d.SemanticField == selected_semantic_field
@@ -110,6 +113,16 @@
       function filter_searchbox(d, text = search_box_text) {
           return d.Name.toLowerCase().includes(text.toLowerCase())
       }
+
+
+      function uniq(arr, key) {
+          var seen = {};
+          return arr.filter(function(d) {
+              return seen.hasOwnProperty(d[key]) ? false : (seen[d[key]] = true);
+          });
+      }
+
+
       // Load data from a URL. You can also have the json file downloaded.
       // See https://github.com/d3/d3/blob/master/API.md#fetches-d3-fetch for more options.
 
@@ -233,26 +246,36 @@
         function zoomed(e) {
           const {transform} = e;
           g.attr("transform", transform);
-          g.attr("stroke-width", 1 / transform.k);
+
+          zoom_factor = transform.k
+          g.attr("stroke-width", 1 / zoom_factor);
 
           g.selectAll('circle').attr('r', function (d, i)
-            {zoom_factor = transform.k
+            {
              if (d3.select(this).attr('fill-opacity') == 1)
                 return big_r / Math.sqrt(zoom_factor);
              return small_r / Math.sqrt(zoom_factor);})
+
+           dataJoinMapLines()
         }
 
-        function dataJoinMap(rawData = languages) {
+
+        function dataJoinMapLines(rawData = borrowed) {
+            .data(data)
+        }
+
+        function dataJoinMap(rawData = borrowed) {
           const data = rawData//.filter(d => d.year === year);
 
-          g.selectAll("circle")
-            .data(data)
+          g.selectAll("circle[class='source']")
+            .data(uniq(data, 'language_name_source'))
             .join(
               enter => enter.append("circle")
-                .attr("transform", d => `translate(${d.projection})`)
+                .attr("class", "source")
+                .attr("transform", d => `translate(${d.projection_source})`)
                 .attr("r", big_r / Math.sqrt(zoom_factor))
-                .attr("fill", d => "red")
-                .attr("stroke", d => "red")
+                .attr("fill", d => source_color)
+                .attr("stroke", d => source_color)
                 .attr("fill-opacity", 1)
                 .attr("stroke-opacity", 0)
                 .on('mouseenter', function(e, d) {
@@ -261,9 +284,13 @@
                     .delay(100)
                     // .style("fill", colors.active_color);
                   tooltip.html(
-                      `<div><strong> ${d.Name}</strong></div>`)
+                      `<div><strong> ${d.language_name_source}</strong></div>`)
                        .style('visibility', 'visible');
                   selected_point = d;
+                  selected_is_source = true;
+
+                  dataJoinMapLines(borrowed)
+
                 })
                 .on('mouseleave', function(e, d) {
                   d3.select(this)
@@ -279,10 +306,10 @@
                 }),
 
               update => update
-                .attr("transform", d => `translate(${d.projection})`)
+                .attr("transform", d => `translate(${d.projection_source})`)
                 .attr("r", big_r / Math.sqrt(zoom_factor))
-                .attr("fill", d => "red")
-                .attr("stroke", d => "red")
+                .attr("fill", d => source_color)
+                .attr("stroke", d => source_color)
                 .attr("stroke-opacity", 0)
                 .attr("fill-opacity", 1)
                 .on('mouseenter', function(e, d) {
@@ -291,9 +318,11 @@
                     .delay(100)
                     // .style("fill", colors.active_color);
                   tooltip.html(
-                      `<div><strong> ${d.Name}</strong></div>`)
+                      `<div><strong> ${d.language_name_source}</strong></div>`)
                        .style('visibility', 'visible');
                   selected_point = d;
+                  selected_is_source = true;
+
                 })
                 .on('mouseleave', function(e, d) {
                   d3.select(this)
@@ -317,7 +346,95 @@
                 .on('mouseenter', null)
                 .on('mouseleave', null)
                .on('mousemove', null)
-             })};
+             });
+
+                g.selectAll("circle[class='target']")
+                  .data(uniq(data, 'language_name_target'))
+                  .join(
+                    enter => enter.append("circle")
+                      .attr("class", "target")
+                      .attr("transform", d => `translate(${d.projection_target})`)
+                      .attr("r", big_r / Math.sqrt(zoom_factor))
+                      .attr("fill", d => target_color)
+                      .attr("stroke", d => target_color)
+                      .attr("fill-opacity", 1)
+                      .attr("stroke-opacity", 0)
+                      .on('mouseenter', function(e, d) {
+                        d3.select(this)
+                          .transition()
+                          .delay(100)
+                          // .style("fill", colors.active_color);
+                        tooltip.html(
+                            `<div><strong> ${d.language_name_target}</strong></div>`)
+                             .style('visibility', 'visible');
+                        selected_point = d;
+                        selected_is_source = false;
+
+
+                        dataJoinMapLines(borrowed)
+                      })
+                      .on('mouseleave', function(e, d) {
+                        d3.select(this)
+                          .transition()
+                          .delay(100)
+                          // .style("fill", colors.inactive_color);
+                        tooltip.html(``).style('visibility', 'hidden');
+                      })
+                     .on('mousemove', function (e, d) {
+                            tooltip
+                              .style('top', e.pageY - 10 + 'px')
+                              .style('left', e.pageX + 10 + 'px');
+                      }),
+
+                    update => update
+                      .attr("transform", d => `translate(${d.projection_target})`)
+                      .attr("r", big_r / Math.sqrt(zoom_factor))
+                      .attr("fill", d => target_color)
+                      .attr("stroke", d => target_color)
+                      .attr("stroke-opacity", 0)
+                      .attr("fill-opacity", 1)
+                      .on('mouseenter', function(e, d) {
+                        d3.select(this)
+                          .transition()
+                          .delay(100)
+                          // .style("fill", colors.active_color);
+                        tooltip.html(
+                            `<div><strong> ${d.language_name_target}</strong></div>`)
+                             .style('visibility', 'visible');
+                        selected_point = d;
+                        selected_is_source = false;
+
+                      })
+                      .on('mouseleave', function(e, d) {
+                        d3.select(this)
+                          .transition()
+                          .delay(100)
+                          // .style("fill", colors.inactive_color);
+                        tooltip.html(``).style('visibility', 'hidden');
+                      })
+                     .on('mousemove', function (e, d) {
+                            tooltip
+                              .style('top', e.pageY - 10 + 'px')
+                              .style('left', e.pageX + 10 + 'px');
+                      }),
+
+                    exit => {return exit
+                      // .attr("fill", "gray")
+                      // .attr("stroke", "gray")
+                      .attr("fill-opacity", 0)
+                      .attr("stroke-opacity", .5)
+                      .attr("r", small_r / Math.sqrt(zoom_factor))
+                      .on('mouseenter', null)
+                      .on('mouseleave', null)
+                     .on('mousemove', null)
+                   });
+
+
+
+
+
+
+              };
 
           // // Raise visible points
           // g.selectAll("circle").filter(function() {return d3.select(this).attr("fill-opacity") == 1}).raise()

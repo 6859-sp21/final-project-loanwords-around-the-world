@@ -11,32 +11,18 @@
 
     <link rel="stylesheet" href="https://rawgithub.com/Caged/d3-tip/master/examples/example-styles.css">
     <link rel="stylesheet" href="style.css">
-    <style>
-      #custom-handle {
-        width: 50;
-        height: 1.6em;
-        top: 50%;
-        margin-top: -.8em;
-        text-align: center;
-        line-height: 1.6em;
-        
-      }
-    </style>
-    <style>
-      .myDiv {
-        background-color: black;
-        height: 20px;
-        width: 200px;
-      }
-    </style>
   </head>
   <body>
     <h1>6.859: Loan Word Demo</h1>
 
 
     <div class="grid-container">
-      
-      <div class="Map"></div>
+
+      <div class="Map">
+        <div id="slider">
+            <div id="custom-handle" class="ui-slider-handle"></div>
+        </div>
+      </div>
 
       <div class="SearchboxDesc">
         <p>Search for languages using the searchbox.
@@ -83,28 +69,35 @@
 
 
     </div>
-    <div class = 'myDiv' id="slider">
-        <div id="custom-handle" class="ui-slider-handle"></div>
-    </div>
 
 
     <script>
-      var selected_slidebar = 0;
-      $( function() {
-        var handle = $( "#custom-handle" );
-        $( "#slider" ).slider({
-          create: function() {
-            handle.text( $( this ).slider( "value" )/100 );
-          },
-          slide: function( event, ui ) {
-            selected_slidebar = ui.value/100
-            console.log("SLIDEBAR")
-            console.log(ui.value)
-            console.log(selected_slidebar)
-            handle.text( ui.value/100 );
-          }
-        });
-      } );      // console.log("hi");
+
+      var selected_slider_year = null;
+      var slider_values = [1000, 1500, 1800, 1900, 1950, 2007];
+      var handle_values = ['<1000', '1000-1499', '1500-1799', '1800-1900', '1900-1950', '1950-2007'];
+
+
+      $(function() {
+              var handle = $( "#custom-handle" );
+              $( "#slider" ).slider({
+                  value:[ 0 ],
+                  min: 0,
+                  max: 5,
+                  step : 1,
+                  create: function() {
+                    handle.text(handle_values[$( this ).slider("value")]);
+                  },
+                  slide: function( event, ui ) {
+                    selected_slider_year = slider_values[ui.value]
+                     // if( slider_values.indexOf(ui.value)===-1 ) return false;
+                     handle.text(handle_values[ui.value]);
+                  }
+              });
+          });
+
+
+
       //set up for chart
       dimensions = ({
         width: 1000,

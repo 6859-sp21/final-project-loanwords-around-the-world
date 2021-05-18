@@ -116,7 +116,7 @@
 
       d3.csv("https://raw.githubusercontent.com/6859-sp21/final-project-loanwords-around-the-world/main/parameters.csv").then((parameters) => {
       d3.csv("https://raw.githubusercontent.com/6859-sp21/final-project-loanwords-around-the-world/main/languages.csv").then((languages) => {
-      d3.csv("https://raw.githubusercontent.com/6859-sp21/final-project-loanwords-around-the-world/main/parameters.csv").then((other) => {
+      d3.csv("https://raw.githubusercontent.com/6859-sp21/final-project-loanwords-around-the-world/main/merged_borrowed.csv").then((borrowed) => {
 
         var topojson_countries; // = await d3.json("https://static.observableusercontent.com/files/75faaaca1f1a4f415145b9db520349a3a0b93a53c1071346a30e6824586a7c251f45367d9262ed148b7a2b5c2694aa7703f3ac88051abc65066fd0074fdf9c9e?response-content-disposition=attachment%3Bfilename*%3DUTF-8%27%27states-albers-10m.json")
         $.ajax({
@@ -156,6 +156,10 @@
                       .projection(projectionMercator);
 
         languages.forEach(d => {d.projection = projectionMercator([d.Longitude, d.Latitude])});
+        // console.log(languages)
+
+        borrowed.forEach(d => {d.projection_target = projectionMercator([d.language_longitude_target, d.language_latitude_target]);
+                               d.projection_source = projectionMercator([d.language_longitude_source, d.language_latitude_source]);});
         // console.log(languages)
 
         const zoom = d3.zoom()

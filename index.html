@@ -166,16 +166,7 @@
       d3.csv("https://raw.githubusercontent.com/6859-sp21/final-project-loanwords-around-the-world/main/parameters.csv").then((parameters) => {
       d3.csv("https://raw.githubusercontent.com/6859-sp21/final-project-loanwords-around-the-world/main/languages.csv").then((languages) => {
       d3.csv("https://raw.githubusercontent.com/6859-sp21/final-project-loanwords-around-the-world/main/merged_borrowed.csv").then((borrowed) => {
-
-        var topojson_countries; // = await d3.json("https://static.observableusercontent.com/files/75faaaca1f1a4f415145b9db520349a3a0b93a53c1071346a30e6824586a7c251f45367d9262ed148b7a2b5c2694aa7703f3ac88051abc65066fd0074fdf9c9e?response-content-disposition=attachment%3Bfilename*%3DUTF-8%27%27states-albers-10m.json")
-        $.ajax({
-          dataType: "json",
-          url: "https://raw.githubusercontent.com/6859-sp21/final-project-loanwords-around-the-world/main/countries-110m.json",
-          // data: data,
-          success: (data, success) => {if (success) topojson_countries = data;
-                                       else console.log("FAILED TO LOAD MAP")},
-          async: false
-        });
+      d3.json("https://raw.githubusercontent.com/6859-sp21/final-project-loanwords-around-the-world/main/countries-110m.json").then((topojson_countries) => {
 
         countries_objects = topojson.feature(topojson_countries, topojson_countries.objects.countries)
         countries = topojson.feature(topojson_countries, topojson_countries.objects.countries).features
@@ -204,7 +195,7 @@
         var path = d3.geoPath()
                       .projection(projectionMercator);
 
-        languages.forEach(d => {d.projection = projectionMercator([d.Longitude, d.Latitude])});
+        // languages.forEach(d => {d.projection = projectionMercator([d.Longitude, d.Latitude])});
         // console.log(languages)
 
         borrowed.forEach(d => {d.projection_target = projectionMercator([d.language_longitude_target, d.language_latitude_target]);
@@ -225,28 +216,6 @@
           .style("stroke", colors.stroke_color)
           .style("stroke-width", ".1px")
           .attr("class", "country")
-         //  .on("click", clicked)
-         //  .on('mouseenter', function(e, d) {
-         //    d3.select(this)
-         //      .transition()
-         //      .delay(100)
-         //      .style("fill", colors.active_color);
-         //    tooltip.html(
-         //        `<div><strong> ${d.properties.name}</strong></div>`)
-         //         .style('visibility', 'visible');
-         //  })
-         //  .on('mouseleave', function(e, d) {
-         //    d3.select(this)
-         //      .transition()
-         //      .delay(100)
-         //      .style("fill", colors.inactive_color);
-         //    tooltip.html(``).style('visibility', 'hidden');
-         //  })
-         // .on('mousemove', function (e, d) {
-         //        tooltip
-         //          .style('top', e.pageY - 10 + 'px')
-         //          .style('left', e.pageX + 10 + 'px');
-         //  });
 
          g.append("path")
             .data(mesh_countries)
@@ -1131,12 +1100,12 @@
         $('.SemanticFieldSubWords').append(svg_bar_SemanticFieldSpecific.node());
 
 
-      })})});
+      })})})});
 
 
 
       </script>
-      
+
   </body>
 
   <!-- This adapted from Arvind's observable from lecture. https://observablehq.com/d/4c93c3a516d35624 -->

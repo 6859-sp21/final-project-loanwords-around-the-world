@@ -261,7 +261,65 @@
 
 
         function dataJoinMapLines(rawData = borrowed) {
+
+          if (selected_point === null)
+            return
+
+          // console.log(selected_point)
+
+          var data;
+
+          // if (selected_point.borrowed_score_target)
+
+          if (selected_is_source) {
+            data = rawData.filter(d => d.language_name_source === selected_point.language_name_source);
+          } else {
+            data = rawData.filter(d => d.language_name_target === selected_point.language_name_target);
+          }
+
+          const arrow_size = 1.5 /  Math.sqrt(zoom_factor)
+
+          g.append("svg:defs").append("svg:marker")
+            .attr("id", "arrow")
+            .attr("refX", arrow_size + big_r /  Math.sqrt(zoom_factor))
+            .attr("refY", arrow_size)
+            .attr("markerWidth", arrow_size*2)
+            .attr("markerHeight", arrow_size*2)
+            .attr("orient", "auto")
+            .append("path")
+            .attr("d", `M 0 0 ${arrow_size*2} ${arrow_size} 0 ${arrow_size*2} ${arrow_size/2} ${arrow_size}`)
+            .style("fill", "black");
+
+          g.selectAll("line")
             .data(data)
+            .join(
+              enter => enter.append("svg:line")
+                // .attr("class", "target")
+                .attr("x1", d => d.projection_source[0])
+                .attr("y1", d => d.projection_source[1])
+                .attr("x2", d => d.projection_target[0])
+                .attr("y2", d => d.projection_target[1])
+                // .style("stroke-dasharray", ("3, 3"))
+                .style("stroke-opacity", .2)
+                .style("stroke-width", 2 /  Math.sqrt(zoom_factor))
+                .style("stroke", selected_is_source ? source_color : target_color)
+                .attr("marker-end", "url(#arrow)"),
+                // .attr("marker-start", selected_is_source ? null : "url(#arrow)"),
+
+              update => update
+                .attr("x1", d => d.projection_source[0])
+                .attr("y1", d => d.projection_source[1])
+                .attr("x2", d => d.projection_target[0])
+                .attr("y2", d => d.projection_target[1])
+                // .style("stroke-dasharray", ("3, 3"))
+                .style("stroke-opacity", .2)
+                .style("stroke-width", 2 / Math.sqrt(zoom_factor))
+                .style("stroke", selected_is_source ? source_color : target_color)
+                .attr("marker-end", "url(#arrow)"),
+                // .attr("marker-start", selected_is_source ? null : "url(#arrow)"),
+
+              exit => exit.remove());
+
         }
 
         function dataJoinMap(rawData = borrowed) {

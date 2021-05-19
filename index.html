@@ -82,10 +82,6 @@
       var selected_slider_year = null;
       var slider_values = [1000, 1500, 1800, 1900, 1950, 2007];
       var handle_values = ['<1000', '1000-1499', '1500-1799', '1800-1900', '1900-1950', '1950-2007'];
-      var age_score_values = [0, 0, 0, 1, 2, 3, 3, 4, 4, 5, 5]
-
-
-      
 
 
       //set up for chart
@@ -126,9 +122,6 @@
       var selected_point = null;
       var selected_is_source = null;
 
-      
-
-
       var big_r = 2;
       var small_r = 1;
       const source_color = '#1E555C'
@@ -137,8 +130,7 @@
 
 
       function filter_year(d, year = selected_slider_year) {
-        
-        return d.age_score_target == "" ? true : slider_values[age_score_values[d.age_score_target*10]] <= selected_slider_year
+        return selected_slider_year === null ? true : d.first_attested == selected_slider_year
       }
 
       function filter_semantic_field(d, semantic_field = selected_semantic_field) {
@@ -306,7 +298,7 @@
             );
 
           rows.selectAll('tr').selectAll('td')
-            .data(function (d) { console.log(d)
+            .data(function (d) { // console.log(d)
 		    	         return titles.map(function (k) {
 		    		             return { 'value': d[title_var_name_map[k]], 'name': k};
                           })
@@ -340,6 +332,8 @@
           } else {
             data = rawData.filter(d => d.language_name_target === selected_point.language_name_target);
           }
+
+          data = data.filter(d => filter_year(d))
 
           const arrow_size = 1.5 /  Math.sqrt(zoom_factor)
 
@@ -389,10 +383,10 @@
         }
 
 
-        
+
 
         function dataJoinMap(rawData = borrowed) {
-          const data = rawData//.filter(d => d.year === year);
+          const data = rawData.filter(d => filter_year(d))
 
           g.selectAll("circle[class='source']")
             .data(uniq(data, 'language_name_source'))
@@ -450,6 +444,8 @@
                   selected_point = d;
                   selected_is_source = true;
 
+                  dataJoinMapLines(borrowed)
+
                 })
                 .on('mouseleave', function(e, d) {
                   d3.select(this)
@@ -475,86 +471,89 @@
                .on('mousemove', null)
              });
 
-                g.selectAll("circle[class='target']")
-                  .data(uniq(data, 'language_name_target'))
-                  .join(
-                    enter => enter.append("circle")
-                      .attr("class", "target")
-                      .attr("transform", d => `translate(${d.projection_target})`)
-                      .attr("r", big_r / Math.sqrt(zoom_factor))
-                      .attr("fill", d => target_color)
-                      .attr("stroke", d => target_color)
-                      .attr("fill-opacity", 1)
-                      .attr("stroke-opacity", 0)
-                      .on('mouseenter', function(e, d) {
-                        d3.select(this)
-                          .transition()
-                          .delay(100)
-                          // .style("fill", colors.active_color);
-                        tooltip.html(
-                            `<div><strong> ${d.language_name_target}</strong></div>`)
-                             .style('visibility', 'visible');
-                        selected_point = d;
-                        selected_is_source = false;
+          g.selectAll("circle[class='target']")
+            .data(uniq(data, 'language_name_target'))
+            .join(
+              enter => enter.append("circle")
+                .attr("class", "target")
+                .attr("transform", d => `translate(${d.projection_target})`)
+                .attr("r", big_r / Math.sqrt(zoom_factor))
+                .attr("fill", d => target_color)
+                .attr("stroke", d => target_color)
+                .attr("fill-opacity", 1)
+                .attr("stroke-opacity", 0)
+                .on('mouseenter', function(e, d) {
+                  d3.select(this)
+                    .transition()
+                    .delay(100)
+                    // .style("fill", colors.active_color);
+                  tooltip.html(
+                      `<div><strong> ${d.language_name_target}</strong></div>`)
+                       .style('visibility', 'visible');
+                  selected_point = d;
+                  selected_is_source = false;
 
 
-                        dataJoinMapLines(borrowed)
-                      })
-                      .on('mouseleave', function(e, d) {
-                        d3.select(this)
-                          .transition()
-                          .delay(100)
-                          // .style("fill", colors.inactive_color);
-                        tooltip.html(``).style('visibility', 'hidden');
-                      })
-                     .on('mousemove', function (e, d) {
-                            tooltip
-                              .style('top', e.pageY - 10 + 'px')
-                              .style('left', e.pageX + 10 + 'px');
-                      }),
+                  dataJoinMapLines(borrowed)
+                })
+                .on('mouseleave', function(e, d) {
+                  d3.select(this)
+                    .transition()
+                    .delay(100)
+                    // .style("fill", colors.inactive_color);
+                  tooltip.html(``).style('visibility', 'hidden');
+                })
+               .on('mousemove', function (e, d) {
+                      tooltip
+                        .style('top', e.pageY - 10 + 'px')
+                        .style('left', e.pageX + 10 + 'px');
+                }),
 
-                    update => update
-                      .attr("transform", d => `translate(${d.projection_target})`)
-                      .attr("r", big_r / Math.sqrt(zoom_factor))
-                      .attr("fill", d => target_color)
-                      .attr("stroke", d => target_color)
-                      .attr("stroke-opacity", 0)
-                      .attr("fill-opacity", 1)
-                      .on('mouseenter', function(e, d) {
-                        d3.select(this)
-                          .transition()
-                          .delay(100)
-                          // .style("fill", colors.active_color);
-                        tooltip.html(
-                            `<div><strong> ${d.language_name_target}</strong></div>`)
-                             .style('visibility', 'visible');
-                        selected_point = d;
-                        selected_is_source = false;
+              update => update
+                .attr("transform", d => `translate(${d.projection_target})`)
+                .attr("r", big_r / Math.sqrt(zoom_factor))
+                .attr("fill", d => target_color)
+                .attr("stroke", d => target_color)
+                .attr("stroke-opacity", 0)
+                .attr("fill-opacity", 1)
+                .on('mouseenter', function(e, d) {
+                  d3.select(this)
+                    .transition()
+                    .delay(100)
+                    // .style("fill", colors.active_color);
+                  tooltip.html(
+                      `<div><strong> ${d.language_name_target}</strong></div>`)
+                       .style('visibility', 'visible');
+                  selected_point = d;
+                  selected_is_source = false;
 
-                      })
-                      .on('mouseleave', function(e, d) {
-                        d3.select(this)
-                          .transition()
-                          .delay(100)
-                          // .style("fill", colors.inactive_color);
-                        tooltip.html(``).style('visibility', 'hidden');
-                      })
-                     .on('mousemove', function (e, d) {
-                            tooltip
-                              .style('top', e.pageY - 10 + 'px')
-                              .style('left', e.pageX + 10 + 'px');
-                      }),
+                  dataJoinMapLines(borrowed)
 
-                    exit => {return exit
-                      // .attr("fill", "gray")
-                      // .attr("stroke", "gray")
-                      .attr("fill-opacity", 0)
-                      .attr("stroke-opacity", .5)
-                      .attr("r", small_r / Math.sqrt(zoom_factor))
-                      .on('mouseenter', null)
-                      .on('mouseleave', null)
-                     .on('mousemove', null)
-                   });
+
+                })
+                .on('mouseleave', function(e, d) {
+                  d3.select(this)
+                    .transition()
+                    .delay(100)
+                    // .style("fill", colors.inactive_color);
+                  tooltip.html(``).style('visibility', 'hidden');
+                })
+               .on('mousemove', function (e, d) {
+                      tooltip
+                        .style('top', e.pageY - 10 + 'px')
+                        .style('left', e.pageX + 10 + 'px');
+                }),
+
+              exit => {return exit
+                // .attr("fill", "gray")
+                // .attr("stroke", "gray")
+                .attr("fill-opacity", 0)
+                .attr("stroke-opacity", .5)
+                .attr("r", small_r / Math.sqrt(zoom_factor))
+                .on('mouseenter', null)
+                .on('mouseleave', null)
+               .on('mousemove', null)
+             });
 
 
 
@@ -580,8 +579,8 @@
                   },
                   slide: function( event, ui ) {
                     selected_slider_year = slider_values[ui.value];
-                    dataJoinMapLines(borrowed.filter(d => filter_year(d)));
-                    dataJoinMap(borrowed.filter(d => filter_year(d)));
+                    dataJoinMapLines();
+                    dataJoinMap();
                     handle.text(handle_values[ui.value]);
                   },
               });

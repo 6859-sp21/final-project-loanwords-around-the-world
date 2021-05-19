@@ -19,9 +19,12 @@
     <div class="grid-container">
 
       <div class="Map">
-        <div id="slider">
+
+        <div class="slider" id="slider">
+
             <div id="custom-handle" class="ui-slider-handle"></div>
         </div>
+        <!-- <button id="toggleAutoPlayBtn">Play</button> -->
       </div>
 
       <div class="SearchboxDesc">
@@ -76,26 +79,10 @@
       var selected_slider_year = null;
       var slider_values = [1000, 1500, 1800, 1900, 1950, 2007];
       var handle_values = ['<1000', '1000-1499', '1500-1799', '1800-1900', '1900-1950', '1950-2007'];
+      var age_score_values = [0, 0, 0, 1, 2, 3, 3, 4, 4, 5, 5]
 
 
-      $(function() {
-              var handle = $( "#custom-handle" );
-              $( "#slider" ).slider({
-                  value:[ 0 ],
-                  min: 0,
-                  max: 5,
-                  step : 1,
-                  create: function() {
-                    handle.text(handle_values[$( this ).slider("value")]);
-                  },
-                  slide: function( event, ui ) {
-                    selected_slider_year = slider_values[ui.value]
-                     // if( slider_values.indexOf(ui.value)===-1 ) return false;
-                     handle.text(handle_values[ui.value]);
-                  }
-              });
-          });
-
+      
 
 
       //set up for chart
@@ -136,15 +123,22 @@
       var selected_point = null;
       var selected_is_source = null;
 
+      
+
+
       var big_r = 2;
       var small_r = 1;
       const source_color = '#1E555C'
       const target_color = '#EDB183'
 
+      function filter_year(d, year = selected_slider_year) {
+        
+        return d.age_score_target == "" ? true : slider_values[age_score_values[d.age_score_target*10]] <= selected_slider_year
+      }
+
       function filter_semantic_field(d, semantic_field = selected_semantic_field) {
         return selected_semantic_field == "" ? true : d.SemanticField == selected_semantic_field
       }
-
 
       function filter_searchbox(d, text = search_box_text) {
           return d.Name.toLowerCase().includes(text.toLowerCase())
@@ -267,6 +261,7 @@
 
         function dataJoinMapLines(rawData = borrowed) {
 
+
           if (selected_point === null)
             return
 
@@ -326,6 +321,26 @@
               exit => exit.remove());
 
         }
+
+
+        $(function() {
+              var handle = $( "#custom-handle" );
+              $( "#slider" ).slider({
+                  value:[ 0 ],
+                  min: 0,
+                  max: 5,
+                  step : 1,
+                  create: function() {
+                    handle.text(handle_values[$( this ).slider("value")]);
+                  },
+                  slide: function( event, ui ) {
+                    selected_slider_year = slider_values[ui.value];
+                    dataJoinMapLines(borrowed.filter(d => filter_year(d)));
+                    dataJoinMap(borrowed.filter(d => filter_year(d)));
+                    handle.text(handle_values[ui.value]);
+                  },
+              });
+          });
 
         function dataJoinMap(rawData = borrowed) {
           const data = rawData//.filter(d => d.year === year);

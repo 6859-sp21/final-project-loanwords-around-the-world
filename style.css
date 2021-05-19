@@ -1,14 +1,15 @@
 .grid-container {
   display: grid;
-  grid-template-columns: 23% 23% 23% 23% 8%;
-  grid-template-rows: 1fr 10% fit-content(10%) fit-content(10%) fit-content(10%) fit-content(10%);
+  grid-template-columns: 8% 28% 28% 28% 8%;
+  grid-template-rows: 1fr 1fr 1fr 1fr 1fr);
   gap: 0px 0px;
   grid-template-areas:
-    "IntroText SemanticField SemanticFieldSubWords SemanticFieldSubWords SemanticFieldSubWords"
-    "SearchboxDesc SearchboxDesc SearchboxDesc SearchboxDesc ."
-    "Map Map Map Map ."
-    "Map Map Map Map ."
-    "Map Map Map Map ."
+    ". IntroText IntroText IntroText ."
+    ". SemanticField SemanticFieldSubWords SemanticFieldSubWords SemanticFieldSubWords"
+    ". MapDescription MapDescription MapDescription ."
+    ". Map Map Map ."
+    ". Map Map Map ."
+    ". Map Map Map ."
     ". Table Table Table .";
 }
 
@@ -25,10 +26,29 @@
 
 .SemanticFieldSubWords { grid-area: SemanticFieldSubWords; }
 
+.MapDescription { grid-area: MapDescription; }
+
+
 .Table {
   grid-area: Table;
   /* overflow-y: auto;
   max-height: 200px; */
+}
+
+body {
+  font-family: 'IBM Plex Serif', serif;
+}
+
+h1 {
+  text-align: center;
+}
+
+h2 {
+  text-align: center;
+}
+
+.barText {
+  font-family: Arial;
 }
 
 
@@ -45,21 +65,29 @@
 }
 
 #custom-handle {
-  width: 100;
+  width: 80;
   height: 1.6em;
   top: 50%;
   margin-top: -.8em;
   text-align: center;
   line-height: 1.6em;
+  font-size: 10pt;
 
 }
 
 #slider {
-  
+
+  display: inline-block;
   height: 20px;
-  margin-left: 50px;
-  margin-right: 150px;
+  margin-left: 20px;
+  margin-right: 80px;
+  width: 40%
   /* width: 200px; */
+}
+
+.allYearsCheckbox {
+  display: inline-block;
+  min-width: fit-content;
 }
 
 .borrowedTable {
@@ -68,7 +96,7 @@
 }
 
 table {
-  font-family: Arial, Helvetica, sans-serif;
+  /* font-family: Arial, Helvetica, sans-serif; */
   border-collapse: collapse;
   width: 100%;
 }

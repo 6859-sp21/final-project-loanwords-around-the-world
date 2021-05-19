@@ -106,7 +106,7 @@
       //set up for chart
       dimensions = ({
         width: 1000,
-        height: 700,
+        height: 500,
         margin: 50,
       })
       colors = ({
@@ -400,8 +400,8 @@
                 .style("stroke-opacity", .2)
                 .style("stroke-width", 2 /  Math.sqrt(zoom_factor))
                 .style("stroke", selected_is_source ? source_color : target_color)
-                .attr("marker-end", "url(#arrow)"),
-                // .attr("marker-start", selected_is_source ? null : "url(#arrow)"),
+                .attr("marker-end", selected_is_source ? "url(#arrow)" : null)
+                .attr("marker-start", selected_is_source ? null : "url(#arrow)"),
 
               update => update
                 .attr("x1", d => d.projection_source[0])
@@ -412,8 +412,8 @@
                 .style("stroke-opacity", .2)
                 .style("stroke-width", 2 / Math.sqrt(zoom_factor))
                 .style("stroke", selected_is_source ? source_color : target_color)
-                .attr("marker-end", "url(#arrow)"),
-                // .attr("marker-start", selected_is_source ? null : "url(#arrow)"),
+                .attr("marker-end", selected_is_source ? "url(#arrow)" : null)
+                .attr("marker-start", selected_is_source ? null : "url(#arrow)"),
 
               exit => exit.remove());
 
@@ -499,16 +499,17 @@
                         .style('left', e.pageX + 10 + 'px');
                 }),
 
-              exit => {return exit
-                // .attr("fill", "gray")
-                // .attr("stroke", "gray")
-                .attr("fill-opacity", 0)
-                .attr("stroke-opacity", .5)
-                .attr("r", small_r / Math.sqrt(zoom_factor))
-                .on('mouseenter', null)
-                .on('mouseleave', null)
-               .on('mousemove', null)
-             });
+                exit => {return exit.remove()
+               });
+
+             //  exit => {return exit
+             //    .attr("fill-opacity", 0)
+             //    .attr("stroke-opacity", .5)
+             //    .attr("r", small_r / Math.sqrt(zoom_factor))
+             //    .on('mouseenter', null)
+             //    .on('mouseleave', null)
+             //   .on('mousemove', null)
+             // });
 
           g.selectAll("circle[class='target']")
             .data(uniq(data, 'language_name_target'))
@@ -567,8 +568,6 @@
                   selected_is_source = false;
 
                   dataJoinMapLines(borrowed)
-
-
                 })
                 .on('mouseleave', function(e, d) {
                   d3.select(this)
@@ -583,15 +582,7 @@
                         .style('left', e.pageX + 10 + 'px');
                 }),
 
-              exit => {return exit
-                // .attr("fill", "gray")
-                // .attr("stroke", "gray")
-                .attr("fill-opacity", 0)
-                .attr("stroke-opacity", .5)
-                .attr("r", small_r / Math.sqrt(zoom_factor))
-                .on('mouseenter', null)
-                .on('mouseleave', null)
-               .on('mousemove', null)
+              exit => {return exit.remove()
              });
 
 

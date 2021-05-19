@@ -634,11 +634,11 @@
 
         //*********************************************************************
         // Draw our histogram
-        width_bar.SemanticField_Borrowed = 500,
-        height_bar.SemanticField = 700,
-        margin_bar.SemanticField_Borrowed = {top: 10, right: 10, bottom: 40, left: 200};
+        width_bar.SemanticField_Borrowed = 400,
+        height_bar.SemanticField = 900,
+        margin_bar.SemanticField_Borrowed = {top: 40, right: 10, bottom: 40, left: 150};
 
-        width_bar.SemanticField_Age = 350,
+        // width_bar.SemanticField_Age = 350,
         margin_bar.SemanticField_Age = {top: 10, right: 10, bottom: 40, left: 50};
 
         const svg_bar_SemanticField = d3.create('svg')
@@ -681,11 +681,11 @@
         const Age_to_Year_Map = {'0.5':2007, '0.6':1950, '0.7':1900, '0.8':1800, '0.9':1500, '1.0':1000}
         const Age_to_Year_Estimate = x => x in Age_to_Year_Map ? Age_to_Year_Map[x.toFixed(1)] : 2008
 
-        const xScale_bar_SemanticField_Age = d3.scaleLinear()
-          .domain([0, 2020])
-          .range([margin_bar.SemanticField_Age.left, width_bar.SemanticField_Age - margin_bar.SemanticField_Age.right])
-          .nice();
-
+        // const xScale_bar_SemanticField_Age = d3.scaleLinear()
+        //   .domain([0, 2020])
+        //   .range([margin_bar.SemanticField_Age.left, width_bar.SemanticField_Age - margin_bar.SemanticField_Age.right])
+        //   .nice();
+        //
         const yScale_bar_SemanticField = d3.scaleBand()
           .domain(rawAggregateSemanticField.map(d => d.key))
           .range([height_bar.SemanticField - margin_bar.SemanticField_Borrowed.bottom, margin_bar.SemanticField_Borrowed.top])
@@ -696,29 +696,40 @@
           .attr('transform', `translate(0, ${height_bar.SemanticField - margin_bar.SemanticField_Borrowed.bottom})`)
           .call(d3.axisBottom(xScale_bar_SemanticField_Borrowed).ticks(3))
           .append('text')
-            .attr('transform', `translate(${margin_bar.SemanticField_Borrowed.left}, ${margin_bar.SemanticField_Borrowed.bottom - 5})`)
+            .attr('transform', `translate(${margin_bar.SemanticField_Borrowed.left - 20}, ${-height_bar.SemanticField + 70})`)
+            // .attr('transform', `translate(${margin_bar.SemanticField_Borrowed.left}, ${margin_bar.SemanticField_Borrowed.bottom - 5})`)
             .attr('text-anchor', 'start')
             .attr('fill', 'black')
             .attr('font-size', '15px')
             .attr('font-weight', 'bold')
-            .text('Borrowed Score');
+            .text('Borrowing by Semantic Category');
+
+        svg_bar_SemanticField.append('g')
+          .append('text')
+            .attr('transform', `translate(${margin_bar.SemanticField_Borrowed.left}, ${height_bar.SemanticField - margin_bar.SemanticField_Borrowed.bottom + 35})`)
+            // .attr('transform', `translate(${margin_bar.SemanticField_Borrowed.left}, ${margin_bar.SemanticField_Borrowed.bottom - 5})`)
+            .attr('text-anchor', 'start')
+            .attr('fill', 'black')
+            .attr('font-size', '15px')
+            .attr('font-weight', 'bold')
+            .text('Average Borrowed Score');
 
         svg_bar_SemanticField.append('g')
           .classed('y-axis', true)
           .attr('transform', `translate(${margin_bar.SemanticField_Borrowed.left}, 0)`)
           .call(d3.axisLeft(yScale_bar_SemanticField).tickFormat((d,i) => d));
 
-        svg_bar_SemanticField.append('g')
-          .classed('x-axis', true)
-          .attr('transform', `translate(${width_bar.SemanticField_Borrowed}, ${height_bar.SemanticField - margin_bar.SemanticField_Borrowed.bottom})`)
-          .call(d3.axisBottom(xScale_bar_SemanticField_Age).ticks(3))
-          .append('text')
-            .attr('transform', `translate(${margin_bar.SemanticField_Age.left}, ${margin_bar.SemanticField_Borrowed.bottom - 5})`)
-            .attr('text-anchor', 'start')
-            .attr('fill', 'black')
-            .attr('font-size', '15px')
-            .attr('font-weight', 'bold')
-            .text('Age Score');
+        // svg_bar_SemanticField.append('g')
+        //   .classed('x-axis', true)
+        //   .attr('transform', `translate(${width_bar.SemanticField_Borrowed}, ${height_bar.SemanticField - margin_bar.SemanticField_Borrowed.bottom})`)
+        //   .call(d3.axisBottom(xScale_bar_SemanticField_Age).ticks(3))
+        //   .append('text')
+        //     .attr('transform', `translate(${margin_bar.SemanticField_Age.left}, ${margin_bar.SemanticField_Borrowed.bottom - 5})`)
+        //     .attr('text-anchor', 'start')
+        //     .attr('fill', 'black')
+        //     .attr('font-size', '15px')
+        //     .attr('font-weight', 'bold')
+        //     .text('Age Score');
 
         svg_bar_SemanticField.append('g')
           .classed('y-axis', true)
@@ -730,6 +741,8 @@
 
         // const g_bar_SemanticField_Age = svg_bar_SemanticField_Age.append('g')
         //   .classed('marks', true);
+
+        var SemanticFieldSpecificTitleText;
 
         //histogram datajoin
         function dataJoinBarSemanticField(rawData = parameters) {
@@ -752,6 +765,10 @@
                             // console.log(d)
                             if (d.key != selected_semantic_field) {
                               selected_semantic_field = d.key
+
+                              if (SemanticFieldSpecificTitleText) {
+                                SemanticFieldSpecificTitleText.text(`Rating of Subconcepts within the "${selected_semantic_field}" Category`);
+                              }
                               dataJoinBarSemanticField()
                               dataJoinBarSemanticFieldSpecific(parameters.filter(d => filter_semantic_field(d)))
                             }
@@ -797,39 +814,6 @@
                           // // .attr('fill-opacity', d => d.key == selected_semantic_field ? 1 : .5)
               );
 
-            // g_bar_SemanticField.selectAll('rect2')
-            //   .data(data)
-            //   .join(
-            //     enter => enter.append("rect")
-            //               .attr('transform', `translate(${width_bar.SemanticField_Borrowed}, 0)`)
-            //               .attr("fill", d => "#2f4b7c")
-            //               .attr('x', margin_bar.SemanticField_Age.left)
-            //               .attr('y', d => yScale_bar_SemanticField(d.key))
-            //               .attr('height', yScale_bar_SemanticField.bandwidth())
-            //               .call(enter => enter.transition().duration(1000)
-            //                 .attr('width', d => {
-            //                   // console.log(d.value);
-            //                   return xScale_bar_SemanticField_Age(Age_to_Year_Estimate(d.value_Age)) - margin_bar.SemanticField_Age.left}))
-            //               .attr('fill-opacity', 1)
-            //               .on("mouseover", function(e, d) {
-            //                   selected_semantic_field = d.key
-            //                   dataJoinBarSemanticField(parameters.filter(d => filter_semantic_field(d)))
-            //                   dataJoinBarSemanticFieldSpecific(parameters.filter(d => filter_semantic_field(d)))
-            //             	}),
-            //     update => update
-            //                 // .attr("fill", d => colorScaleSemanticField(d.key))
-            //                 .attr('y', d => yScale_bar_SemanticField(d.key))
-            //                 // .attr('width', d => xScale_bar_SemanticField(d.value) - margin_bar.SemanticField.left),
-            //               .call(update => update.transition().duration(200)
-            //                 .attr('width', d => xScale_bar_SemanticField_Age(Age_to_Year_Estimate(d.value_Age)) - margin_bar.SemanticField_Age.left))
-            //                 .attr('fill-opacity', 1),
-            //     exit => exit
-            //               .call(exit => exit.transition().duration(1000)
-            //                 .attr('fill-opacity', .7))
-            //                 // .attr('width', d => xScale_bar_SemanticField_Age(0) - margin_bar.SemanticField_Age.left)
-            //
-            //   );
-
         }
 
         //-------------------------------------------------------------------------
@@ -838,11 +822,11 @@
         //*********************************************************************
         // Draw our histogram
         width_bar.SemanticFieldSpecific_Borrowed = 500,
-        height_bar.SemanticFieldSpecific = 700,
-        margin_bar.SemanticFieldSpecific_Borrowed = {top: 10, right: 10, bottom: 40, left: 200};
+        height_bar.SemanticFieldSpecific = 900,
+        margin_bar.SemanticFieldSpecific_Borrowed = {top: 40, right: 10, bottom: 40, left: 150};
 
         width_bar.SemanticFieldSpecific_Age = 320,
-        margin_bar.SemanticFieldSpecific_Age = {top: 10, right: 10, bottom: 40, left: 20};
+        margin_bar.SemanticFieldSpecific_Age = {top: 40, right: 10, bottom: 40, left: 20};
 
         const svg_bar_SemanticFieldSpecific = d3.create('svg')
           .attr('width', width_bar.SemanticFieldSpecific_Borrowed + width_bar.SemanticFieldSpecific_Age)
@@ -888,29 +872,49 @@
           .range([margin_bar.SemanticFieldSpecific_Age.left, width_bar.SemanticFieldSpecific_Age - margin_bar.SemanticFieldSpecific_Age.right])
           .nice();
 
-        svg_bar_SemanticFieldSpecific.append('g')
+        SemanticFieldSpecificTitleText = svg_bar_SemanticFieldSpecific.append('g')
           .classed('x-axis', true)
           .attr('transform', `translate(0, ${height_bar.SemanticFieldSpecific - margin_bar.SemanticFieldSpecific_Borrowed.bottom})`)
           .call(d3.axisBottom(xScale_bar_SemanticFieldSpecific_Borrowed).ticks(3))
           .append('text')
-            .attr('transform', `translate(${margin_bar.SemanticFieldSpecific_Borrowed.left}, ${margin_bar.SemanticFieldSpecific_Borrowed.bottom - 5})`)
+            .attr('transform', `translate(${margin_bar.SemanticFieldSpecific_Borrowed.left+20}, ${-height_bar.SemanticFieldSpecific + 70})`)
             .attr('text-anchor', 'start')
             .attr('fill', 'black')
             .attr('font-size', '15px')
             .attr('font-weight', 'bold')
-            .text('Borrowed Score');
+            .text(`Rating of Subconcepts within the "${selected_semantic_field}" Category`);
+
+        svg_bar_SemanticFieldSpecific.append('g')
+          .append('text')
+            .attr('transform', `translate(${margin_bar.SemanticFieldSpecific_Borrowed.left}, ${height_bar.SemanticFieldSpecific - margin_bar.SemanticFieldSpecific_Borrowed.bottom + 35})`)
+            // .attr('transform', `translate(${margin_bar.SemanticField_Borrowed.left}, ${margin_bar.SemanticField_Borrowed.bottom - 5})`)
+            .attr('text-anchor', 'start')
+            .attr('fill', 'black')
+            .attr('font-size', '15px')
+            .attr('font-weight', 'bold')
+            .text('Average Borrowed Score');
 
         svg_bar_SemanticFieldSpecific.append('g')
           .classed('x-axis', true)
           .attr('transform', `translate(${width_bar.SemanticFieldSpecific_Borrowed}, ${height_bar.SemanticFieldSpecific - margin_bar.SemanticFieldSpecific_Borrowed.bottom})`)
           .call(d3.axisBottom(xScale_bar_SemanticFieldSpecific_Age).ticks(3))
+        //   .append('text')
+        //     .attr('transform', `translate(${margin_bar.SemanticFieldSpecific_Age.left - 30}, ${-height_bar.SemanticFieldSpecific + 70})`)
+        //     .attr('text-anchor', 'start')
+        //     .attr('fill', 'black')
+        //     .attr('font-size', '15px')
+        //     .attr('font-weight', 'bold')
+        //     .text('Median Year of First Recorded Borrowing');
+
+        svg_bar_SemanticFieldSpecific.append('g')
           .append('text')
-            .attr('transform', `translate(${margin_bar.SemanticFieldSpecific_Age.left}, ${margin_bar.SemanticFieldSpecific_Borrowed.bottom - 5})`)
+            .attr('transform', `translate(${width_bar.SemanticFieldSpecific_Borrowed + margin_bar.SemanticFieldSpecific_Age.left}, ${height_bar.SemanticFieldSpecific - margin_bar.SemanticFieldSpecific_Borrowed.bottom + 35})`)
+            // .attr('transform', `translate(${margin_bar.SemanticField_Borrowed.left}, ${margin_bar.SemanticField_Borrowed.bottom - 5})`)
             .attr('text-anchor', 'start')
             .attr('fill', 'black')
             .attr('font-size', '15px')
             .attr('font-weight', 'bold')
-            .text('Age Score');
+            .text('Median Year of First Recorded Borrowing');
 
         const yScale_bar_SemanticFieldSpecific = d3.scaleBand()
           .domain(rawAggregateSemanticFieldSpecific.map(d => d.key))

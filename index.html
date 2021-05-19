@@ -37,7 +37,20 @@
       </div>
 
       <div class="MapDescription">
-        <p>Search for languages using the searchbox.</p>
+        <h2>Interactive Map</h2>
+
+        <p style = 'text-align: center; font-weight: bold;'>Geography sometimes, but not always, plays a role in the borrowing of words. <br>Play with the map below to explore the history of borrowed words.</p>
+
+        Languages are represented by points on the map -- these coordinates were provided in the dataset, but, of course, many of the languages are spoken in many locales around the world.<br><br>
+
+        Points are broken down into <strong>369 donor/source languages (green)</strong> and <strong>41 recipient/target languages (tan)</strong>. These labels were chosen by the authors of the dataset and they are not exhaustive.
+        <i>Many (if not all) languages are both donors and recipients, but this is not captured in the data</i>. <br><br>
+
+        Drag the slider bar across the top to look at borrowed words of different ages or click the checkbox to show all languages/words in the dataset.<br><br>
+
+        Hover over points on the map to see the language name as well as lines depicting what languages it borrows from/donates to. See the scrollable table below the chart to see more details about each shared/borrowed word.<br><br>
+
+        You can zoom in or out by scrolling on a particular area, and the zoom can be reset by clicking once anywhere on the map.
       </div>
 
       <!-- <div class="SearchboxDesc">
@@ -47,34 +60,30 @@
 
 
       <div class="IntroText">
-        <strong>Placeholder text -- still need to figure out format/what to write here.</strong> <br><br>
 
-        These visualizations are based on data from the World Loanword Dataset (WoLD).
-        Words from 394 languages are included and they are mapped to 24 words in 24 different concepts.<br><br>
+        There are over 7000 languages spoken around the world but most people only know or experience a handful of them. Especially
+        now that many languages are going extinct at an alarming rate, this visualization was built to help people see the
+        common strings connecting the world's languages.<br><br>
 
-        These broad concepts are shown in the left-most chart.
-        Each concept is broken into anywhere 28-50 component words
-        (shown in the two right-most charts).<br><br>
+        The following visualizations are based on data from the <a href="https://wold.clld.org/">World Loanword Dataset (WoLD)</a>, which consists of vocabularies contributed by 41 different authors or author teams.
+        Words from 394 languages are included and they are mapped to 28-50 constituent words in 24 different categories.<br><br>
 
-        You can update the right-most charts by hovering your mouse over the bars in the
-        left-most chart. <br><br>
+        The data in these first bar charts is the result of a collaborative project coordinated by Uri Tadmor and Martin Haspelmath between 2004 and 2008, called the Loanword Typology Project (LWT).
+        The contributors participated in workshops at which the procedures for selecting and annotating words were discussed extensively.
+        The list of 1460 meanings on which the vocabularies are based is called the Loanword Typology meaning list.<br>
 
-        <strong>Borrowed Score: </strong> An average (across all languages) representing how likely words representing
-        a given concept/word are to be borrowed. <br>
+        <p style = 'font-style: italic'>We aim to make this data interactive and accessible for a general audience.</p>
 
-        0 means definitely not borrowed, 1 means definitely borrowed.<br><br>
+        The left-most bar chart lists all the key categories from the Loanword Typology meaning list.
+        Upon hovering over a bar representing a category, the category will be broken up into its constituent words/sub-concepts in the right two bar charts.<br><br>
 
-        <strong>Age Score: </strong> An average (across all languages) representing the (estimated)
-        age of words for a given concept/word. <br>
+        <strong>Borrowed Score: </strong> Each word is given a borrowed score such that 0 represents no evidence for borrowing and 1 represents definitely borrowed.
+        These aggregate that data to to give estimates for how likely a word within a broad category is to be borrowed (left) or how likely a word representing a constitutent concept is to be borrowed (right).<br><br>
 
-        The values range from earlier than 1000, earlier than 1800, earlier than 1900,
-        earlier than 1950, earlier than 2007, and 2008 or later.<br>
+        <strong>First Attested: </strong> Each word has an estimated year range for the first attestation or recording of its borrowing. The right-most chart the median year range for a given concept.
+        The values range from earlier than 1000, 1000-1499, 1500-1799, 1800-1899, 1900-1949, 1950-2007, and newer than 2007.<br><br>
 
-
-
-
-
-
+        <p style = 'text-align: center; font-weight: bold;'>Explore the chart to see which categories and concepts are most/least likely to be borrowed. <br>Can you guess why some word may be borrowed more/less?</p>
 
       </div>
 
@@ -821,7 +830,7 @@
 
         //*********************************************************************
         // Draw our histogram
-        width_bar.SemanticFieldSpecific_Borrowed = 500,
+        width_bar.SemanticFieldSpecific_Borrowed = 450,
         height_bar.SemanticFieldSpecific = 900,
         margin_bar.SemanticFieldSpecific_Borrowed = {top: 40, right: 10, bottom: 40, left: 150};
 
@@ -848,6 +857,7 @@
                                     value_Borrowed: d[1][0],
                                     error_Borrowed: d[1][1],
                                     value_Age: d[1][2],
+                                    value_First_Attested: Age_to_Year_Estimate(d[1][2]) == 2008 ? '>2007' : year_to_range_map[Age_to_Year_Estimate(d[1][2])],
                                     error_Age: d[1][3]}))
                         .sort(function(a, b) {
                                 return a.value_Borrowed - b.value_Borrowed;
@@ -1023,11 +1033,11 @@
                             .attr('font-weight', 'bold')
                             .attr('x', d => xScale_bar_SemanticFieldSpecific_Age(Age_to_Year_Estimate(d.value_Age)) - 5)
                             .attr('y', d => yScale_bar_SemanticFieldSpecific(d.key) + 3*yScale_bar_SemanticFieldSpecific.bandwidth()/4)
-                            .text(d => Age_to_Year_Estimate(d.value_Age)),
+                            .text(d => d.value_First_Attested),
                   update => update
                               .attr('x', d => xScale_bar_SemanticFieldSpecific_Age(Age_to_Year_Estimate(d.value_Age)) - 5)
                               .attr('y', d => yScale_bar_SemanticFieldSpecific(d.key) + 3*yScale_bar_SemanticFieldSpecific.bandwidth()/4)
-                              .text(d => Age_to_Year_Estimate(d.value_Age)),
+                              .text(d => d.value_First_Attested),
                   exit => exit.remove()
                 );
 

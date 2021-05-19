@@ -296,7 +296,7 @@
 
 
         var table = d3.select('.borrowedTable').append('table');
-        var titles = ['Source Language', 'Target Language', 'Source Word', 'Target Word'];
+        var titles = ['Source Language', 'Target Language', 'Source Word', 'Target Word', 'Borrowed Score', 'First Attested'];
         var headers = table.append('thead').append('tr')
                          .selectAll('th')
                          .data(titles).enter()
@@ -326,7 +326,15 @@
           const title_var_name_map = {'Source Language': 'language_name_source',
                                       'Target Language': 'language_name_target',
                                       'Source Word': 'name_source',
-                                      'Target Word': 'name_target'};
+                                      'Target Word': 'name_target',
+                                      'Borrowed Score': 'borrowed_score_target',
+                                      'First Attested': 'first_attested'};
+
+          const borrowed_score_map = {4: 'definitely',
+                                      3: 'probably',
+                                      2: 'perhaps',
+                                      1: 'little evidence',
+                                      0: 'no evidence'}
 
 
           rows.selectAll('tr')
@@ -344,10 +352,14 @@
                      }).join(
               enter => enter.append('td')
                         .attr('data-th', d => d.name)
-                        .text(d => d.value),
+                        .text(d => {if (d.name == 'Borrowed Score') return borrowed_score_map[Math.round(d.value * 4)]
+                                    else if (d.name == 'First Attested') return year_to_range_map[d.value]
+                                    else return d.value}),
               update => update
                           .attr('data-th', d => d.name)
-                          .text(d => d.value),
+                          .text(d => {if (d.name == 'Borrowed Score') return borrowed_score_map[Math.round(d.value * 4)]
+                                      else if (d.name == 'First Attested') return year_to_range_map[d.value]
+                                      else return d.value}),
               exit => exit.remove()
 
             );

@@ -20,17 +20,28 @@
 
       <div class="Map">
 
-        <div class="slider" id="slider">
+        <div class = "sliderAndCheckbox">
+          <div class = "slider" id="slider">
+              <div id = "custom-handle" class = "ui-slider-handle"></div>
+          </div>
 
-            <div id="custom-handle" class="ui-slider-handle"></div>
+          <div class="allYearsCheckbox">
+            <input type="checkbox" onclick="onClickHandler()" id="showAllYears" name="showAllYears" value = "1">
+            <label for="showAllYears"> Check this box to show data for all years</label>
+          </div>
         </div>
+
         <!-- <button id="toggleAutoPlayBtn">Play</button> -->
       </div>
 
-      <div class="SearchboxDesc">
+      <div class="MapDescription">
+        <p>Search for languages using the searchbox.</p>
+      </div>
+
+      <!-- <div class="SearchboxDesc">
         <p>Search for languages using the searchbox.
         <input type="text" value="" id="search_box" placeholder="Search for languages..."/>
-      </div>
+      </div> -->
 
 
       <div class="IntroText">
@@ -81,7 +92,13 @@
 
       var selected_slider_year = null;
       var slider_values = [1000, 1500, 1800, 1900, 1950, 2007];
-      var handle_values = ['<1000', '1000-1499', '1500-1799', '1800-1900', '1900-1950', '1950-2007'];
+      var handle_values = ['<1000', '1000-1499', '1500-1799', '1800-1899', '1900-1949', '1950-2007'];
+      var year_to_range_map = {1000: '<1000',
+                               1500: '1000-1499',
+                               1800: '1500-1799',
+                               1900: '1800-1899',
+                               1950: '1900-1949',
+                               2007: '1950-2007'}
 
 
       //set up for chart
@@ -138,7 +155,9 @@
       }
 
       function filter_searchbox(d, text = search_box_text) {
-          return d.Name.toLowerCase().includes(text.toLowerCase())
+        if (d.language_name_source)
+          return d.language_name_target.toLowerCase() == text.toLowerCase() // || d.language_name_source.toLowerCase() == text.toLowerCase()
+        return d.toLowerCase().includes(text.toLowerCase())
       }
 
 
@@ -148,6 +167,8 @@
               return seen.hasOwnProperty(d[key]) ? false : (seen[d[key]] = true);
           });
       }
+
+      var onClickHandler;
 
 
       // Load data from a URL. You can also have the json file downloaded.
@@ -253,6 +274,22 @@
              return small_r / Math.sqrt(zoom_factor);})
 
            dataJoinMapLines()
+        }
+
+        onClickHandler = function() {
+            var checked = $('#showAllYears').attr('checked')
+            console.log(checked)
+
+            if (checked) {
+              selected_slider_year = null
+              $('#slider').css('visibility', 'hidden');
+            } else {
+              $('#slider').css('visibility', 'visible');
+              selected_slider_year = slider_values[$('#slider').slider("option", "value")]
+            }
+
+            dataJoinMap()
+            dataJoinMapLines()
         }
 
 
@@ -1114,12 +1151,14 @@
         dataJoinBarSemanticField(parameters.filter(d => filter_semantic_field(d)))
         dataJoinBarSemanticFieldSpecific()
 
+        const all_language_names = [...new Set([...borrowed.map(d => d.language_name_target)])] //...borrowed.map(d => d.language_name_source)])]
+
+
         $('#search_box').autocomplete({
+
         // source: college_mobility.map(d => d.name)
         source: function (request, response) {
-                    response(languages
-                      .filter(d => filter_searchbox(d))
-                      .map(d => d.Name))
+                    response(all_language_names.filter(d => filter_searchbox(d)))
                 }
         });
 
@@ -1133,11 +1172,13 @@
         if (e.which == '13') {
           // e.preventDefault();
 
-          let results = languages.filter(d => filter_searchbox(d))
+          let results = borrowed.filter(d => filter_searchbox(d))
 
           console.log("ENTERPRESSED")
 
-          if (results.length == 1) {
+          console.log(results)
+
+          if (results.length >= 1) {
             console.log("RESULT")
             console.log(results)
             selected_point = results[0]
@@ -1146,31 +1187,11 @@
             // $("#tier-label").text(selected_point.tier_name)
             // $("#state-label").text(selected_point.state_name)
 
-            dataJoinMap(results)
+            dataJoinMapLines()
 
           }
 
 
-        } else {
-
-          dataJoinMap(languages.filter(d => filter_searchbox(d)));
-
-          let results = languages.filter(d => filter_searchbox(d))
-
-          console.log("ENTERPRESSED")
-
-          if (results.length == 1) {
-            console.log("RESULT")
-            console.log(results)
-            selected_point = results[0]
-
-            // $("#school-label").text(selected_point.name)
-            // $("#tier-label").text(selected_point.tier_name)
-            // $("#state-label").text(selected_point.state_name)
-
-            dataJoinMap(results)
-
-          }
         }
 
       });

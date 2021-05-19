@@ -67,6 +67,9 @@
 
       <div class="SemanticFieldSubWords"></div>
 
+      <div class="Table">
+        <div class="borrowedTable"></div>
+      </div>
 
     </div>
 
@@ -140,6 +143,8 @@
       var small_r = 1;
       const source_color = '#1E555C'
       const target_color = '#EDB183'
+      var table_sort_ascending = true;
+
 
       function filter_semantic_field(d, semantic_field = selected_semantic_field) {
         return selected_semantic_field == "" ? true : d.SemanticField == selected_semantic_field
@@ -265,6 +270,65 @@
         }
 
 
+        var table = d3.select('.borrowedTable').append('table');
+        var titles = ['Source Language', 'Target Language', 'Source Word', 'Target Word'];
+        var headers = table.append('thead').append('tr')
+                         .selectAll('th')
+                         .data(titles).enter()
+                         .append('th')
+                         .text(function (d) {
+                            return d;
+                          })
+                         .on('click', function (d) {
+                           headers.attr('class', 'header');
+
+                           if (table_sort_ascending) {
+                             rows.sort(function(a, b) { return b[d] < a[d]; });
+                             table_sort_ascending = false;
+                             this.className = 'aes';
+                           } else {
+                           rows.sort(function(a, b) { return b[d] > a[d]; });
+                           table_sort_ascending = true;
+                           this.className = 'des';
+                           }
+
+                         });
+
+        var rows = table.append('tbody')
+
+        function dataJoinMapTable(data) {
+
+          const title_var_name_map = {'Source Language': 'language_name_source',
+                                      'Target Language': 'language_name_target',
+                                      'Source Word': 'name_source',
+                                      'Target Word': 'name_target'};
+
+
+          rows.selectAll('tr')
+            .data(data).join(
+              enter => enter.append('tr'),
+              update => update,
+              exit => exit.remove()
+            );
+
+          rows.selectAll('tr').selectAll('td')
+            .data(function (d) { console.log(d)
+		    	         return titles.map(function (k) {
+		    		             return { 'value': d[title_var_name_map[k]], 'name': k};
+                          })
+                     }).join(
+              enter => enter.append('td')
+                        .attr('data-th', d => d.name)
+                        .text(d => d.value),
+              update => update
+                          .attr('data-th', d => d.name)
+                          .text(d => d.value),
+              exit => exit.remove()
+
+            );
+        }
+
+
         function dataJoinMapLines(rawData = borrowed) {
 
           if (selected_point === null)
@@ -324,6 +388,8 @@
                 // .attr("marker-start", selected_is_source ? null : "url(#arrow)"),
 
               exit => exit.remove());
+
+              dataJoinMapTable(data)
 
         }
 

@@ -323,24 +323,7 @@
         }
 
 
-        $(function() {
-              var handle = $( "#custom-handle" );
-              $( "#slider" ).slider({
-                  value:[ 0 ],
-                  min: 0,
-                  max: 5,
-                  step : 1,
-                  create: function() {
-                    handle.text(handle_values[$( this ).slider("value")]);
-                  },
-                  slide: function( event, ui ) {
-                    selected_slider_year = slider_values[ui.value];
-                    dataJoinMapLines(borrowed.filter(d => filter_year(d)));
-                    dataJoinMap(borrowed.filter(d => filter_year(d)));
-                    handle.text(handle_values[ui.value]);
-                  },
-              });
-          });
+        
 
         function dataJoinMap(rawData = borrowed) {
           const data = rawData//.filter(d => d.year === year);
@@ -518,6 +501,25 @@
           // g.selectAll("circle").filter(function() {return d3.select(this).attr("fill-opacity") == 1}).raise()
 
 
+
+        $(function() {
+              var handle = $( "#custom-handle" );
+              $( "#slider" ).slider({
+                  value:[ 0 ],
+                  min: 0,
+                  max: 5,
+                  step : 1,
+                  create: function() {
+                    handle.text(handle_values[$( this ).slider("value")]);
+                  },
+                  slide: function( event, ui ) {
+                    selected_slider_year = slider_values[ui.value];
+                    dataJoinMapLines(borrowed.filter(d => filter_year(d)));
+                    dataJoinMap(borrowed.filter(d => filter_year(d)));
+                    handle.text(handle_values[ui.value]);
+                  },
+              });
+          });
 
         var width_bar = {},
             height_bar = {},
